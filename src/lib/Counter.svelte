@@ -1,3 +1,5 @@
+<svelte:options tag="my-counter" />
+
 <script>
   let count = 0
   const increment = () => {
@@ -5,19 +7,21 @@
   }
 </script>
 
-<svelte:options tag="my-counter" />
-
 <button on:click={increment}>
   Clicks: {count}
 </button>
 
 <style>
+  /* :root { */
+  /*   --color: ; */
+  /* } */
   button {
+    /* --color: green; */
     font-family: inherit;
     font-size: inherit;
     padding: 1em 2em;
     color: #ff3e00;
-    background-color: rgba(255, 62, 0, 0.1);
+    background-color: var(--color, red);
     border-radius: 2em;
     border: 2px solid rgba(255, 62, 0, 0);
     outline: none;
