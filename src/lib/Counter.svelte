@@ -1,20 +1,43 @@
 <svelte:options tag="my-counter" />
 
 <script>
+  /* import 'pannellum' */
+  /* import 'pannellum/build/pannellum.css' */
+  import { onMount } from 'svelte'
+  import Panorama from 'svelte-panorama-component/dist/index.min.mjs'
+
+  let viewer = null
+
+  onMount(() => {
+    /* viewer = pannellum.viewer('panorama', { */
+    /*   type: 'equirectangular', */
+    /*   panorama: 'https://pannellum.org/images/alma.jpg' */
+    /* }) */
+    /* console.log(pannellum) */
+  })
+
   let count = 0
   const increment = () => {
     count += 1
   }
 </script>
 
-<button on:click={increment}>
-  Clicks: {count}
-</button>
+<div class="wrapper">
+  <svelte-panorama
+    src="https://api.staging.rvhosted.com/wp-content/uploads/2021/03/students-in-boots-library-1920x1018.jpg"
+    alt="Pretty Sky"
+  />
+</div>
 
 <style>
   /* :root { */
   /*   --color: ; */
   /* } */
+
+  .wrapper {
+    height: 300px;
+  }
+
   button {
     /* --color: green; */
     font-family: inherit;
@@ -36,5 +59,9 @@
 
   button:active {
     background-color: rgba(255, 62, 0, 0.2);
+  }
+  #panorama {
+    width: 600px;
+    height: 400px;
   }
 </style>
