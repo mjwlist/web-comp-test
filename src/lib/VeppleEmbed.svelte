@@ -1,6 +1,8 @@
 <svelte:options tag="vepple-embed" />
 
 <script>
+  import { onMount } from 'svelte'
+  import Panorama from './Panorama.svelte'
   export let post
   export let api
 
@@ -65,20 +67,26 @@
   const config = 'https://mjwlist.github.io/web-comp-test/src/lib/config.json'
 </script>
 
-{#await gql}
-  <p>...waiting</p>
-{:then gql}
-  <div class="wrap" part="wrap">
+{#await gql then gql}
+  <vepple-panorama {gql} />
+{/await}
+
+<!-->
+  {#await gql}
+    <p>...waiting</p>
+  {:then gql}
+    <div class="wrap" part="wrap">
     <iframe
       allowfullscreen
       style="border-style:none;"
       part="iframe"
       src={`${cdn}${gql.panorama.mediaItemUrl}&preview=${gql.panorama.sourceUrl}&config=${config}`}
-    />
-  </div>
-{:catch error}
-  <p style="color: red">{error.message}</p>
-{/await}
+      />
+      </div>
+  {:catch error}
+    <p style="color: red">{error.message}</p>
+  {/await}
+  </!-->
 
 {#await data then data}
   <div part="content">

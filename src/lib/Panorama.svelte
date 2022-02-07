@@ -1,85 +1,67 @@
+<svelte:options tag="vepple-panorama" />
+
 <script>
-  import { Renderer, Sphere, Orbit, Mesh } from 'ogl'
-  import { loadTextureAsync, makeCamera, makeProgram } from './gl'
   import { onMount } from 'svelte'
+  import Marzipano from 'marzipano'
+  export let gql = {}
 
-  let className = ''
-  export let alt = 'Panoramic View'
-  export { className as class }
-  export let fov = 30
-  export let src
-
-  let wrapper
-  let canvas
-  let raf
+  let pano
 
   onMount(() => {
-    const loader = loadTextureAsync(src)
-    const { clientWidth, clientHeight } = wrapper
-    const renderer = new Renderer({
-      canvas: canvas,
-      width: clientWidth,
-      height: clientHeight
-    })
-
-    const gl = renderer.gl
-    gl.clearColor(1, 1, 1, 1)
-
-    const sphere = new Sphere(gl, {
-      radius: 1,
-      widthSegments: 64
-    })
-    console.log(sphere)
-
-    const camera = makeCamera(gl, fov, clientWidth, clientHeight)
-    const controls = new Orbit(camera, {
-      enablePan: false,
-      enableZoom: true,
-      //zoomStyle: 0,
-      element: canvas,
-      maxDistance: 1,
-      minDistance: 0
-    })
-
-    const resizeObserver = new ResizeObserver((entries) =>
-      entries.every(({ target: { clientWidth, clientHeight } }) => {
-        renderer.setSize(clientWidth, clientHeight)
-        camera.perspective({ aspect: clientWidth / clientHeight })
-      })
-    )
-    resizeObserver.observe(wrapper)
-
-    loader.then((loaded) => {
-      const texture = loaded(gl)
-      const program = makeProgram(gl, texture)
-      const scene = new Mesh(gl, {
-        geometry: sphere,
-        program: program
-      })
-
-      function update() {
-        controls.update()
-        renderer.render({ scene: scene, camera: camera })
-        raf = requestAnimationFrame(update)
+    const viewerOpts = {
+      controls: {
+        mouseViewMode: 'drag'
       }
+    }
+    const viewer = new Marzipano.Viewer(pano, viewerOpts)
+    const source = Marzipano.ImageUrlSource.fromString(
+      gql.panorama.mediaItemUrl
+    )
+    viewer.controls().enableMethodGroup('arrowKeys')
+    // Create geometry.
+    const geometry = new Marzipano.EquirectGeometry([{ width: 4000 }])
+    // Create view.
+    const limiter = Marzipano.RectilinearView.limit.traditional(
+      1024,
+      (100 * Math.PI) / 180
+    )
+    const view = new Marzipano.RectilinearView({ yaw: Math.PI }, limiter)
 
-      raf = requestAnimationFrame(update)
+    // Create scene.
+    const scene = viewer.createScene({
+      source: source,
+      geometry: geometry,
+      view: view,
+      pinFirstLevel: true
     })
 
-    return () => {
-      cancelAnimationFrame(raf)
-      resizeObserver.unobserve(wrapper)
-      resizeObserver.disconnect()
-    }
+    // Display scene.
+    scene.switchTo()
   })
 </script>
 
-<div aria-label={alt} class={className} bind:this={wrapper}>
-  <canvas bind:this={canvas} />
+<div class="wrap">
+  <div class="pano" bind:this={pano} />
 </div>
 
 <style>
-  div {
+  *,
+  *:before,
+  *:after {
+    box-sizing: inherit;
+  }
+
+  .wrap {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+  }
+
+  .pano {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
   }
