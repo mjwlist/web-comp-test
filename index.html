@@ -6,10 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Svelte + Vite App</title>
-    <style></style>
+    <style>
+      .wrap {
+        width: 500px;
+      }
+    </style>
   </head>
   <body>
-    <vepple-embed></vepple-embed>
+    <div class="wrap">
+      <vepple-embed
+        post="art-studio"
+        api="https://viex2feature1.kinsta.cloud"
+      ></vepple-embed>
+    </div>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

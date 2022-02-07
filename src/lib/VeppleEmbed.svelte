@@ -1,10 +1,11 @@
 <svelte:options tag="vepple-embed" />
 
 <script>
+  export let post
+  export let api
+
   async function getData() {
-    const res = await fetch(
-      ` https://staging-api.production.rvhosted.com/wp-json/rv/v1/settings `
-    )
+    const res = await fetch(`${api}/wp-json/rv/v1/settings`)
     const data = await res.json()
 
     if (res.ok) {
@@ -14,22 +15,72 @@
     }
   }
 
+  async function getGql() {
+    const res = await fetch(`${api}/graphql`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        query: `
+            query MyQuery($name: String!) {
+              posts(where: {name: $name}) {
+                  nodes {
+                    slug
+                    postContent {
+                      panorama {
+                        title(format: RAW)
+                        mediaItemUrl
+                        sourceUrl(size: MEDIUM_LARGE)
+                      }
+                      position {
+                        horizontal
+                        vertical
+                      }
+                    }
+                  }
+                }
+            }
+      `,
+        variables: {
+          name: post
+        }
+      })
+    })
+
+    const data = await res.json()
+
+    if (res.ok) {
+      return data.data.posts.nodes[0].postContent
+    } else {
+      throw new Error(data)
+    }
+  }
+
+  const gql = getGql()
+
   let data = getData()
+
+  const cdn = 'https://cdn.pannellum.org/2.5/pannellum.htm#panorama='
+  const config = 'https://mjwlist.github.io/web-comp-test/src/lib/config.json'
 </script>
 
-{#await data}
+{#await gql}
   <p>...waiting</p>
-{:then data}
+{:then gql}
   <div class="wrap" part="wrap">
     <iframe
-      height="100%"
-      width="100%"
       allowfullscreen
       style="border-style:none;"
       part="iframe"
-      src="https://cdn.pannellum.org/2.5/pannellum.htm#panorama=https://staging-api.production.rvhosted.com/wp-content/uploads/2021/10/2110021-cffee-rev-1-a-1.jpeg&amp;preview=https://staging-api.production.rvhosted.com/wp-content/uploads/2021/10/2110021-cffee-rev-1-a-1-768x384.jpeg&config=https://mjwlist.github.io/web-comp-test/src/lib/config.json"
+      src={`${cdn}${gql.panorama.mediaItemUrl}&preview=${gql.panorama.sourceUrl}&config=${config}`}
     />
   </div>
+{:catch error}
+  <p style="color: red">{error.message}</p>
+{/await}
+
+{#await data then data}
   <div part="content">
     <a part="link" href={data.ctaUrl}>{data.ctaText}</a>
   </div>

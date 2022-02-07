@@ -18,6 +18,14 @@ function is_function(thing) {
 function safe_not_equal(a, b) {
   return a != a ? b == b : a !== b || (a && typeof a === "object" || typeof a === "function");
 }
+let src_url_equal_anchor;
+function src_url_equal(element_src, url) {
+  if (!src_url_equal_anchor) {
+    src_url_equal_anchor = document.createElement("a");
+  }
+  src_url_equal_anchor.href = url;
+  return element_src === src_url_equal_anchor.href;
+}
 function is_empty(obj) {
   return Object.keys(obj).length === 0;
 }
@@ -373,9 +381,74 @@ if (typeof HTMLElement === "function") {
     }
   };
 }
+function create_catch_block_1(ctx) {
+  let p;
+  let t_value = ctx[6].message + "";
+  let t;
+  return {
+    c() {
+      p = element("p");
+      t = text(t_value);
+      set_style(p, "color", "red");
+    },
+    m(target, anchor) {
+      insert(target, p, anchor);
+      append(p, t);
+    },
+    p: noop,
+    d(detaching) {
+      if (detaching)
+        detach(p);
+    }
+  };
+}
+function create_then_block_1(ctx) {
+  let div;
+  let iframe;
+  let iframe_src_value;
+  return {
+    c() {
+      div = element("div");
+      iframe = element("iframe");
+      iframe.allowFullscreen = true;
+      set_style(iframe, "border-style", "none");
+      attr(iframe, "part", "iframe");
+      if (!src_url_equal(iframe.src, iframe_src_value = `${cdn}${ctx[0].panorama.mediaItemUrl}&preview=${ctx[0].panorama.sourceUrl}&config=${config}`))
+        attr(iframe, "src", iframe_src_value);
+      attr(div, "class", "wrap");
+      attr(div, "part", "wrap");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, iframe);
+    },
+    p: noop,
+    d(detaching) {
+      if (detaching)
+        detach(div);
+    }
+  };
+}
+function create_pending_block_1(ctx) {
+  let p;
+  return {
+    c() {
+      p = element("p");
+      p.textContent = "...waiting";
+    },
+    m(target, anchor) {
+      insert(target, p, anchor);
+    },
+    p: noop,
+    d(detaching) {
+      if (detaching)
+        detach(p);
+    }
+  };
+}
 function create_catch_block(ctx) {
   let p;
-  let t_value = ctx[1].message + "";
+  let t_value = ctx[6].message + "";
   let t;
   return {
     c() {
@@ -395,64 +468,50 @@ function create_catch_block(ctx) {
   };
 }
 function create_then_block(ctx) {
-  let div0;
-  let t0;
-  let div1;
+  let div;
   let a;
-  let t1_value = ctx[0].ctaText + "";
-  let t1;
+  let t_value = ctx[1].ctaText + "";
+  let t;
   return {
     c() {
-      div0 = element("div");
-      div0.innerHTML = `<iframe height="100%" width="100%" allowfullscreen="" style="border-style:none;" part="iframe" src="https://cdn.pannellum.org/2.5/pannellum.htm#panorama=https://staging-api.production.rvhosted.com/wp-content/uploads/2021/10/2110021-cffee-rev-1-a-1.jpeg&amp;preview=https://staging-api.production.rvhosted.com/wp-content/uploads/2021/10/2110021-cffee-rev-1-a-1-768x384.jpeg&amp;config=https://mjwlist.github.io/web-comp-test/src/lib/config.json"></iframe>`;
-      t0 = space();
-      div1 = element("div");
+      div = element("div");
       a = element("a");
-      t1 = text(t1_value);
-      attr(div0, "class", "wrap");
-      attr(div0, "part", "wrap");
+      t = text(t_value);
       attr(a, "part", "link");
-      attr(a, "href", ctx[0].ctaUrl);
-      attr(div1, "part", "content");
+      attr(a, "href", ctx[1].ctaUrl);
+      attr(div, "part", "content");
     },
     m(target, anchor) {
-      insert(target, div0, anchor);
-      insert(target, t0, anchor);
-      insert(target, div1, anchor);
-      append(div1, a);
-      append(a, t1);
+      insert(target, div, anchor);
+      append(div, a);
+      append(a, t);
     },
     p: noop,
     d(detaching) {
       if (detaching)
-        detach(div0);
-      if (detaching)
-        detach(t0);
-      if (detaching)
-        detach(div1);
+        detach(div);
     }
   };
 }
 function create_pending_block(ctx) {
-  let p;
-  return {
-    c() {
-      p = element("p");
-      p.textContent = "...waiting";
-    },
-    m(target, anchor) {
-      insert(target, p, anchor);
-    },
-    p: noop,
-    d(detaching) {
-      if (detaching)
-        detach(p);
-    }
-  };
+  return { c: noop, m: noop, p: noop, d: noop };
 }
 function create_fragment(ctx) {
-  let await_block_anchor;
+  let t;
+  let await_block1_anchor;
   let info = {
+    ctx,
+    current: null,
+    token: null,
+    hasCatch: true,
+    pending: create_pending_block_1,
+    then: create_then_block_1,
+    catch: create_catch_block_1,
+    value: 0,
+    error: 6
+  };
+  handle_promise(ctx[0], info);
+  let info_1 = {
     ctx,
     current: null,
     token: null,
@@ -460,49 +519,107 @@ function create_fragment(ctx) {
     pending: create_pending_block,
     then: create_then_block,
     catch: create_catch_block,
-    value: 0,
-    error: 1
+    value: 1,
+    error: 6
   };
-  handle_promise(ctx[0], info);
+  handle_promise(ctx[1], info_1);
   return {
     c() {
-      await_block_anchor = empty();
       info.block.c();
+      t = space();
+      await_block1_anchor = empty();
+      info_1.block.c();
       this.c = noop;
     },
     m(target, anchor) {
-      insert(target, await_block_anchor, anchor);
       info.block.m(target, info.anchor = anchor);
-      info.mount = () => await_block_anchor.parentNode;
-      info.anchor = await_block_anchor;
+      info.mount = () => t.parentNode;
+      info.anchor = t;
+      insert(target, t, anchor);
+      insert(target, await_block1_anchor, anchor);
+      info_1.block.m(target, info_1.anchor = anchor);
+      info_1.mount = () => await_block1_anchor.parentNode;
+      info_1.anchor = await_block1_anchor;
     },
     p(new_ctx, [dirty]) {
       ctx = new_ctx;
       update_await_block_branch(info, ctx, dirty);
+      update_await_block_branch(info_1, ctx, dirty);
     },
     i: noop,
     o: noop,
     d(detaching) {
-      if (detaching)
-        detach(await_block_anchor);
       info.block.d(detaching);
       info.token = null;
       info = null;
+      if (detaching)
+        detach(t);
+      if (detaching)
+        detach(await_block1_anchor);
+      info_1.block.d(detaching);
+      info_1.token = null;
+      info_1 = null;
     }
   };
 }
-async function getData() {
-  const res = await fetch(` https://staging-api.production.rvhosted.com/wp-json/rv/v1/settings `);
-  const data = await res.json();
-  if (res.ok) {
-    return data.ctas[0];
-  } else {
-    throw new Error(data);
+const cdn = "https://cdn.pannellum.org/2.5/pannellum.htm#panorama=";
+const config = "https://mjwlist.github.io/web-comp-test/src/lib/config.json";
+function instance($$self, $$props, $$invalidate) {
+  let { post } = $$props;
+  let { api } = $$props;
+  async function getData() {
+    const res = await fetch(`${api}/wp-json/rv/v1/settings`);
+    const data2 = await res.json();
+    if (res.ok) {
+      return data2.ctas[0];
+    } else {
+      throw new Error(data2);
+    }
   }
-}
-function instance($$self) {
+  async function getGql() {
+    const res = await fetch(`${api}/graphql`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: `
+            query MyQuery($name: String!) {
+              posts(where: {name: $name}) {
+                  nodes {
+                    slug
+                    postContent {
+                      panorama {
+                        title(format: RAW)
+                        mediaItemUrl
+                        sourceUrl(size: MEDIUM_LARGE)
+                      }
+                      position {
+                        horizontal
+                        vertical
+                      }
+                    }
+                  }
+                }
+            }
+      `,
+        variables: { name: post }
+      })
+    });
+    const data2 = await res.json();
+    if (res.ok) {
+      return data2.data.posts.nodes[0].postContent;
+    } else {
+      throw new Error(data2);
+    }
+  }
+  const gql = getGql();
   let data = getData();
-  return [data];
+  $$self.$$set = ($$props2) => {
+    if ("post" in $$props2)
+      $$invalidate(2, post = $$props2.post);
+    if ("api" in $$props2)
+      $$invalidate(3, api = $$props2.api);
+  };
+  return [gql, data, post, api];
 }
 class VeppleEmbed extends SvelteElement {
   constructor(options) {
@@ -512,12 +629,33 @@ class VeppleEmbed extends SvelteElement {
       target: this.shadowRoot,
       props: attribute_to_object(this.attributes),
       customElement: true
-    }, instance, create_fragment, safe_not_equal, {}, null);
+    }, instance, create_fragment, safe_not_equal, { post: 2, api: 3 }, null);
     if (options) {
       if (options.target) {
         insert(options.target, this, options.anchor);
       }
+      if (options.props) {
+        this.$set(options.props);
+        flush();
+      }
     }
+  }
+  static get observedAttributes() {
+    return ["post", "api"];
+  }
+  get post() {
+    return this.$$.ctx[2];
+  }
+  set post(post) {
+    this.$$set({ post });
+    flush();
+  }
+  get api() {
+    return this.$$.ctx[3];
+  }
+  set api(api) {
+    this.$$set({ api });
+    flush();
   }
 }
 customElements.define("vepple-embed", VeppleEmbed);
