@@ -1,19 +1,21 @@
 <svelte:options tag="my-counter" />
 
 <script>
-  /* import 'pannellum' */
-  /* import 'pannellum/build/pannellum.css' */
+  import 'pannellum'
+  import 'pannellum/build/pannellum.css'
   import { onMount } from 'svelte'
-  import Panorama from 'svelte-panorama-component/dist/index.min.mjs'
+  import './viewer.mjs'
+  /* import Panorama from 'svelte-panorama-component' */
+  /* import Panorama from './Panorama.svelte' */
 
   let viewer = null
 
   onMount(() => {
-    /* viewer = pannellum.viewer('panorama', { */
-    /*   type: 'equirectangular', */
-    /*   panorama: 'https://pannellum.org/images/alma.jpg' */
-    /* }) */
-    /* console.log(pannellum) */
+    /*   viewer = pannellum.viewer('panorama', { */
+    /*     type: 'equirectangular', */
+    /*     panorama: 'https://pannellum.org/images/alma.jpg' */
+    /*   }) */
+    /*   console.log(pannellum) */
   })
 
   let count = 0
@@ -22,12 +24,10 @@
   }
 </script>
 
-<div class="wrapper">
-  <svelte-panorama
-    src="https://api.staging.rvhosted.com/wp-content/uploads/2021/03/students-in-boots-library-1920x1018.jpg"
-    alt="Pretty Sky"
-  />
-</div>
+<svelte-panorama
+  src="https://staging-api.production.rvhosted.com/wp-content/uploads/2021/03/students-in-boots-library-1920x1018.jpg"
+  alt="Pretty Sky"
+/>
 
 <style>
   /* :root { */

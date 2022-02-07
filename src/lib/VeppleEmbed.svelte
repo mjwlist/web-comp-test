@@ -27,7 +27,7 @@
       allowfullscreen
       style="border-style:none;"
       part="iframe"
-      src="https://cdn.pannellum.org/2.5/pannellum.htm#panorama=https://staging-api.production.rvhosted.com/wp-content/uploads/2021/10/2110021-cffee-rev-1-a-1.jpeg&amp;preview=https://staging-api.production.rvhosted.com/wp-content/uploads/2021/10/2110021-cffee-rev-1-a-1-768x384.jpeg"
+      src="https://cdn.pannellum.org/2.5/pannellum.htm#panorama=https://staging-api.production.rvhosted.com/wp-content/uploads/2021/10/2110021-cffee-rev-1-a-1.jpeg&amp;preview=https://staging-api.production.rvhosted.com/wp-content/uploads/2021/10/2110021-cffee-rev-1-a-1-768x384.jpeg&config=https://mjwlist.github.io/web-comp-test/dist/config.json"
     />
   </div>
   <div part="content">
