@@ -48,7 +48,7 @@
   *,
   *:before,
   *:after {
-    box-sizing: inherit;
+    box-sizing: border-box;
   }
 
   .wrap {

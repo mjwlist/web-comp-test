@@ -1,8 +1,8 @@
 <svelte:options tag="vepple-embed" />
 
 <script>
-  import { onMount } from 'svelte'
   import Panorama from './Panorama.svelte'
+  import Pannellum from './Pannellum.svelte'
   export let post
   export let api
 
@@ -51,6 +51,7 @@
     })
 
     const data = await res.json()
+    console.log(data)
 
     if (res.ok) {
       return data.data.posts.nodes[0].postContent
@@ -61,32 +62,35 @@
 
   const gql = getGql()
 
-  let data = getData()
-
-  const cdn = 'https://cdn.pannellum.org/2.5/pannellum.htm#panorama='
-  const config = 'https://mjwlist.github.io/web-comp-test/src/lib/config.json'
+  const data = getData()
 </script>
 
-{#await gql then gql}
-  <vepple-panorama {gql} />
-{/await}
+<!-->
+  {#await gql then gql}
+    <vepple-panorama {gql} />
+  {/await}
+  </!-->
 
 <!-->
-  {#await gql}
-    <p>...waiting</p>
-  {:then gql}
-    <div class="wrap" part="wrap">
+  {#await gql then gql}
+    <vepple-pannellum {gql} />
+  {/await}
+  </!-->
+
+{#await gql}
+  <p>...waiting</p>
+{:then gql}
+  <div class="wrap" part="wrap">
     <iframe
       allowfullscreen
       style="border-style:none;"
       part="iframe"
-      src={`${cdn}${gql.panorama.mediaItemUrl}&preview=${gql.panorama.sourceUrl}&config=${config}`}
-      />
-      </div>
-  {:catch error}
-    <p style="color: red">{error.message}</p>
-  {/await}
-  </!-->
+      src={`pannellum.htm#panorama=${gql.panorama.mediaItemUrl}&preview=${gql.panorama.sourceUrl}`}
+    />
+  </div>
+{:catch error}
+  <p style="color: red">{error.message}</p>
+{/await}
 
 {#await data then data}
   <div part="content">
@@ -100,7 +104,7 @@
   *,
   *:before,
   *:after {
-    box-sizing: inherit;
+    box-sizing: border-box;
   }
 
   .wrap {
