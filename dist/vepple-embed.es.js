@@ -18,6 +18,14 @@ function is_function(thing) {
 function safe_not_equal(a, b) {
   return a != a ? b == b : a !== b || (a && typeof a === "object" || typeof a === "function");
 }
+let src_url_equal_anchor;
+function src_url_equal(element_src, url) {
+  if (!src_url_equal_anchor) {
+    src_url_equal_anchor = document.createElement("a");
+  }
+  src_url_equal_anchor.href = url;
+  return element_src === src_url_equal_anchor.href;
+}
 function is_empty(obj) {
   return Object.keys(obj).length === 0;
 }
@@ -47,13 +55,6 @@ function attr(node, attribute, value) {
     node.removeAttribute(attribute);
   else if (node.getAttribute(attribute) !== value)
     node.setAttribute(attribute, value);
-}
-function set_custom_element_data(node, prop, value) {
-  if (prop in node) {
-    node[prop] = typeof node[prop] === "boolean" && value === "" ? true : value;
-  } else {
-    attr(node, prop, value);
-  }
 }
 function children(element2) {
   return Array.from(element2.childNodes);
@@ -10316,32 +10317,32 @@ var hammer = { exports: {} };
       },
       on: function(events, handler) {
         var handlers = this.handlers;
-        each(splitStr(events), function(event) {
-          handlers[event] = handlers[event] || [];
-          handlers[event].push(handler);
+        each(splitStr(events), function(event2) {
+          handlers[event2] = handlers[event2] || [];
+          handlers[event2].push(handler);
         });
         return this;
       },
       off: function(events, handler) {
         var handlers = this.handlers;
-        each(splitStr(events), function(event) {
+        each(splitStr(events), function(event2) {
           if (!handler) {
-            delete handlers[event];
+            delete handlers[event2];
           } else {
-            handlers[event].splice(inArray(handlers[event], handler), 1);
+            handlers[event2].splice(inArray(handlers[event2], handler), 1);
           }
         });
         return this;
       },
-      emit: function(event, data) {
+      emit: function(event2, data) {
         if (this.options.domEvents) {
-          triggerDomEvent(event, data);
+          triggerDomEvent(event2, data);
         }
-        var handlers = this.handlers[event] && this.handlers[event].slice();
+        var handlers = this.handlers[event2] && this.handlers[event2].slice();
         if (!handlers || !handlers.length) {
           return;
         }
-        data.type = event;
+        data.type = event2;
         data.preventDefault = function() {
           data.srcEvent.preventDefault();
         };
@@ -10365,9 +10366,9 @@ var hammer = { exports: {} };
         element2.style[prefixed(element2.style, name)] = add2 ? value : "";
       });
     }
-    function triggerDomEvent(event, data) {
+    function triggerDomEvent(event2, data) {
       var gestureEvent = document2.createEvent("Event");
-      gestureEvent.initEvent(event, true, true);
+      gestureEvent.initEvent(event2, true, true);
       gestureEvent.gesture = data;
       data.target.dispatchEvent(gestureEvent);
     }
@@ -12427,7 +12428,7 @@ var src = {
     hammerjs: hammer.exports
   }
 };
-function create_fragment$1(ctx) {
+function create_fragment$2(ctx) {
   let div1;
   let div0;
   return {
@@ -12453,7 +12454,7 @@ function create_fragment$1(ctx) {
     }
   };
 }
-function instance$1($$self, $$props, $$invalidate) {
+function instance$2($$self, $$props, $$invalidate) {
   let { gql = {} } = $$props;
   let pano;
   onMount(() => {
@@ -12487,7 +12488,3644 @@ function instance$1($$self, $$props, $$invalidate) {
 class Panorama extends SvelteElement {
   constructor(options) {
     super();
-    this.shadowRoot.innerHTML = `<style>*,*:before,*:after{box-sizing:inherit}.wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden}.pano{position:absolute;top:0;left:0;width:100%;height:100%}</style>`;
+    this.shadowRoot.innerHTML = `<style>*,*:before,*:after{box-sizing:border-box}.wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden}.pano{position:absolute;top:0;left:0;width:100%;height:100%}</style>`;
+    init(this, {
+      target: this.shadowRoot,
+      props: attribute_to_object(this.attributes),
+      customElement: true
+    }, instance$2, create_fragment$2, safe_not_equal, { gql: 1 }, null);
+    if (options) {
+      if (options.target) {
+        insert(options.target, this, options.anchor);
+      }
+      if (options.props) {
+        this.$set(options.props);
+        flush();
+      }
+    }
+  }
+  static get observedAttributes() {
+    return ["gql"];
+  }
+  get gql() {
+    return this.$$.ctx[1];
+  }
+  set gql(gql) {
+    this.$$set({ gql });
+    flush();
+  }
+}
+customElements.define("vepple-panorama", Panorama);
+window.pannellum = function(window2, document2, undefined$1) {
+  function Viewer2(container, initialConfig) {
+    var _this = this;
+    var config, renderer, preview, draggingHotSpot, isUserInteracting = false, latestInteraction = Date.now(), onPointerDownPointerX = 0, onPointerDownPointerY = 0, onPointerDownPointerDist = -1, onPointerDownYaw = 0, onPointerDownPitch = 0, keysDown = new Array(10), fullscreenActive = false, loaded, error = false, listenersAdded = false, panoImage, prevTime, speed = { "yaw": 0, "pitch": 0, "hfov": 0 }, animating = false, orientation = false, orientationYawOffset = 0, autoRotateStart, autoRotateSpeed = 0, origHfov, origPitch, animatedMove = {}, externalEventListeners = {}, specifiedPhotoSphereExcludes = [], update2 = false, eps = 1e-6, resizeObserver, hotspotsCreated = false, destroyed = false;
+    var defaultConfig = {
+      hfov: 100,
+      minHfov: 50,
+      multiResMinHfov: false,
+      maxHfov: 120,
+      pitch: 0,
+      minPitch: undefined$1,
+      maxPitch: undefined$1,
+      yaw: 0,
+      minYaw: -180,
+      maxYaw: 180,
+      roll: 0,
+      haov: 360,
+      vaov: 180,
+      vOffset: 0,
+      autoRotate: false,
+      autoRotateInactivityDelay: -1,
+      autoRotateStopDelay: undefined$1,
+      type: "equirectangular",
+      northOffset: 0,
+      showFullscreenCtrl: true,
+      dynamic: false,
+      dynamicUpdate: false,
+      doubleClickZoom: true,
+      keyboardZoom: true,
+      mouseZoom: true,
+      showZoomCtrl: true,
+      autoLoad: false,
+      showControls: true,
+      orientationOnByDefault: false,
+      hotSpotDebug: false,
+      backgroundColor: [0, 0, 0],
+      avoidShowingBackground: false,
+      animationTimingFunction: timingFunction,
+      draggable: true,
+      dragConfirm: false,
+      disableKeyboardCtrl: false,
+      crossOrigin: "anonymous",
+      targetBlank: false,
+      touchPanSpeedCoeffFactor: 1,
+      capturedKeyNumbers: [16, 17, 27, 37, 38, 39, 40, 61, 65, 68, 83, 87, 107, 109, 173, 187, 189],
+      friction: 0.15
+    };
+    defaultConfig.strings = {
+      loadButtonLabel: "Click to<br>Load<br>Panorama",
+      loadingLabel: "Loading...",
+      bylineLabel: "by %s",
+      noPanoramaError: "No panorama image was specified.",
+      fileAccessError: "The file %s could not be accessed.",
+      malformedURLError: "There is something wrong with the panorama URL.",
+      iOS8WebGLError: "Due to iOS 8's broken WebGL implementation, only progressive encoded JPEGs work for your device (this panorama uses standard encoding).",
+      genericWebGLError: "Your browser does not have the necessary WebGL support to display this panorama.",
+      textureSizeError: "This panorama is too big for your device! It's %spx wide, but your device only supports images up to %spx wide. Try another device. (If you're the author, try scaling down the image.)",
+      unknownError: "Unknown error. Check developer console.",
+      twoTouchActivate: "Use two fingers together to pan the panorama.",
+      twoTouchXActivate: "Use two fingers together to pan the panorama horizontally.",
+      twoTouchYActivate: "Use two fingers together to pan the panorama vertically.",
+      ctrlZoomActivate: "Use %s + scroll to zoom the panorama."
+    };
+    container = typeof container === "string" ? document2.getElementById(container) : container;
+    container.classList.add("pnlm-container");
+    container.tabIndex = 0;
+    var uiContainer = document2.createElement("div");
+    uiContainer.className = "pnlm-ui";
+    container.appendChild(uiContainer);
+    var renderContainer = document2.createElement("div");
+    renderContainer.className = "pnlm-render-container";
+    container.appendChild(renderContainer);
+    var dragFix = document2.createElement("div");
+    dragFix.className = "pnlm-dragfix";
+    uiContainer.appendChild(dragFix);
+    var aboutMsg = document2.createElement("span");
+    aboutMsg.className = "pnlm-about-msg";
+    var aboutMsgLink = document2.createElement("a");
+    aboutMsgLink.href = "https://pannellum.org/";
+    aboutMsgLink.textContent = "Pannellum";
+    aboutMsg.appendChild(aboutMsgLink);
+    var aboutMsgVersion = document2.createElement("span");
+    aboutMsg.appendChild(aboutMsgVersion);
+    uiContainer.appendChild(aboutMsg);
+    dragFix.addEventListener("contextmenu", aboutMessage);
+    var infoDisplay = {};
+    var hotSpotDebugIndicator = document2.createElement("div");
+    hotSpotDebugIndicator.className = "pnlm-sprite pnlm-hot-spot-debug-indicator";
+    uiContainer.appendChild(hotSpotDebugIndicator);
+    infoDisplay.container = document2.createElement("div");
+    infoDisplay.container.className = "pnlm-panorama-info";
+    infoDisplay.title = document2.createElement("div");
+    infoDisplay.title.className = "pnlm-title-box";
+    infoDisplay.container.appendChild(infoDisplay.title);
+    infoDisplay.author = document2.createElement("div");
+    infoDisplay.author.className = "pnlm-author-box";
+    infoDisplay.container.appendChild(infoDisplay.author);
+    uiContainer.appendChild(infoDisplay.container);
+    infoDisplay.load = {};
+    infoDisplay.load.box = document2.createElement("div");
+    infoDisplay.load.box.className = "pnlm-load-box";
+    infoDisplay.load.boxp = document2.createElement("p");
+    infoDisplay.load.box.appendChild(infoDisplay.load.boxp);
+    infoDisplay.load.lbox = document2.createElement("div");
+    infoDisplay.load.lbox.className = "pnlm-lbox";
+    infoDisplay.load.lbox.innerHTML = '<div class="pnlm-loading"></div>';
+    infoDisplay.load.box.appendChild(infoDisplay.load.lbox);
+    infoDisplay.load.lbar = document2.createElement("div");
+    infoDisplay.load.lbar.className = "pnlm-lbar";
+    infoDisplay.load.lbarFill = document2.createElement("div");
+    infoDisplay.load.lbarFill.className = "pnlm-lbar-fill";
+    infoDisplay.load.lbar.appendChild(infoDisplay.load.lbarFill);
+    infoDisplay.load.box.appendChild(infoDisplay.load.lbar);
+    infoDisplay.load.msg = document2.createElement("p");
+    infoDisplay.load.msg.className = "pnlm-lmsg";
+    infoDisplay.load.box.appendChild(infoDisplay.load.msg);
+    uiContainer.appendChild(infoDisplay.load.box);
+    infoDisplay.errorMsg = document2.createElement("div");
+    infoDisplay.errorMsg.className = "pnlm-error-msg pnlm-info-box";
+    uiContainer.appendChild(infoDisplay.errorMsg);
+    infoDisplay.interactionMsg = document2.createElement("div");
+    infoDisplay.interactionMsg.className = "pnlm-interaction-msg pnlm-info-box";
+    uiContainer.appendChild(infoDisplay.interactionMsg);
+    var controls = {};
+    controls.container = document2.createElement("div");
+    controls.container.className = "pnlm-controls-container";
+    uiContainer.appendChild(controls.container);
+    controls.load = document2.createElement("button");
+    controls.load.className = "pnlm-load-button";
+    controls.load.addEventListener("click", function() {
+      processOptions();
+      load();
+    });
+    uiContainer.appendChild(controls.load);
+    controls.zoom = document2.createElement("div");
+    controls.zoom.className = "pnlm-zoom-controls pnlm-controls";
+    controls.zoomIn = document2.createElement("div");
+    controls.zoomIn.className = "pnlm-zoom-in pnlm-sprite pnlm-control";
+    controls.zoomIn.addEventListener("click", zoomIn);
+    controls.zoom.appendChild(controls.zoomIn);
+    controls.zoomOut = document2.createElement("div");
+    controls.zoomOut.className = "pnlm-zoom-out pnlm-sprite pnlm-control";
+    controls.zoomOut.addEventListener("click", zoomOut);
+    controls.zoom.appendChild(controls.zoomOut);
+    controls.container.appendChild(controls.zoom);
+    controls.fullscreen = document2.createElement("div");
+    controls.fullscreen.addEventListener("click", toggleFullscreen);
+    controls.fullscreen.className = "pnlm-fullscreen-toggle-button pnlm-sprite pnlm-fullscreen-toggle-button-inactive pnlm-controls pnlm-control";
+    if (document2.fullscreenEnabled || document2.mozFullScreenEnabled || document2.webkitFullscreenEnabled || document2.msFullscreenEnabled)
+      controls.container.appendChild(controls.fullscreen);
+    controls.orientation = document2.createElement("div");
+    controls.orientation.addEventListener("click", function(e) {
+      if (orientation)
+        stopOrientation();
+      else
+        startOrientation();
+    });
+    controls.orientation.addEventListener("mousedown", function(e) {
+      e.stopPropagation();
+    });
+    controls.orientation.addEventListener("touchstart", function(e) {
+      e.stopPropagation();
+    });
+    controls.orientation.addEventListener("pointerdown", function(e) {
+      e.stopPropagation();
+    });
+    controls.orientation.className = "pnlm-orientation-button pnlm-orientation-button-inactive pnlm-sprite pnlm-controls pnlm-control";
+    var orientationSupport = false;
+    if (window2.DeviceOrientationEvent && location.protocol == "https:" && navigator.userAgent.toLowerCase().indexOf("mobi") >= 0) {
+      controls.container.appendChild(controls.orientation);
+      orientationSupport = true;
+    }
+    var compass = document2.createElement("div");
+    compass.className = "pnlm-compass pnlm-controls pnlm-control";
+    uiContainer.appendChild(compass);
+    if (initialConfig.firstScene) {
+      mergeConfig(initialConfig.firstScene);
+    } else if (initialConfig.default && initialConfig.default.firstScene) {
+      mergeConfig(initialConfig.default.firstScene);
+    } else {
+      mergeConfig(null);
+    }
+    processOptions(true);
+    function init2() {
+      var div2 = document2.createElement("div");
+      div2.innerHTML = "<!--[if lte IE 9]><i></i><![endif]-->";
+      if (div2.getElementsByTagName("i").length == 1) {
+        anError();
+        return;
+      }
+      origHfov = config.hfov;
+      origPitch = config.pitch;
+      var i2, p;
+      if (config.type == "cubemap") {
+        panoImage = [];
+        for (i2 = 0; i2 < 6; i2++) {
+          panoImage.push(new Image());
+          panoImage[i2].crossOrigin = config.crossOrigin;
+        }
+        infoDisplay.load.lbox.style.display = "block";
+        infoDisplay.load.lbar.style.display = "none";
+      } else if (config.type == "multires") {
+        var c = JSON.parse(JSON.stringify(config.multiRes));
+        if (config.basePath && config.multiRes.basePath && !/^(?:[a-z]+:)?\/\//i.test(config.multiRes.basePath)) {
+          c.basePath = config.basePath + config.multiRes.basePath;
+        } else if (config.multiRes.basePath) {
+          c.basePath = config.multiRes.basePath;
+        } else if (config.basePath) {
+          c.basePath = config.basePath;
+        }
+        panoImage = c;
+      } else {
+        if (config.dynamic === true) {
+          panoImage = config.panorama;
+        } else {
+          if (config.panorama === undefined$1) {
+            anError(config.strings.noPanoramaError);
+            return;
+          }
+          panoImage = new Image();
+        }
+      }
+      if (config.type == "cubemap") {
+        var itemsToLoad = 6;
+        var onLoad = function() {
+          itemsToLoad--;
+          if (itemsToLoad === 0) {
+            onImageLoad();
+          }
+        };
+        var onError = function(e) {
+          var a = document2.createElement("a");
+          a.href = e.target.src;
+          a.textContent = a.href;
+          anError(config.strings.fileAccessError.replace("%s", a.outerHTML));
+        };
+        for (i2 = 0; i2 < panoImage.length; i2++) {
+          p = config.cubeMap[i2];
+          if (p == "null") {
+            console.log("Will use background instead of missing cubemap face " + i2);
+            onLoad();
+          } else {
+            if (config.basePath && !absoluteURL(p)) {
+              p = config.basePath + p;
+            }
+            panoImage[i2].onload = onLoad;
+            panoImage[i2].onerror = onError;
+            panoImage[i2].src = sanitizeURL(p);
+          }
+        }
+      } else if (config.type == "multires") {
+        onImageLoad();
+      } else {
+        p = "";
+        if (config.basePath) {
+          p = config.basePath;
+        }
+        if (config.dynamic !== true) {
+          if (config.panorama instanceof Image || config.panorama instanceof ImageData || window2.ImageBitmap && config.panorama instanceof ImageBitmap) {
+            panoImage = config.panorama;
+            onImageLoad();
+            return;
+          }
+          p = absoluteURL(config.panorama) ? config.panorama : p + config.panorama;
+          panoImage.onload = function() {
+            window2.URL.revokeObjectURL(this.src);
+            onImageLoad();
+          };
+          var xhr = new XMLHttpRequest();
+          xhr.onloadend = function() {
+            if (xhr.status != 200) {
+              var a = document2.createElement("a");
+              a.href = p;
+              a.textContent = a.href;
+              anError(config.strings.fileAccessError.replace("%s", a.outerHTML));
+            }
+            var img = this.response;
+            parseGPanoXMP(img, p);
+            infoDisplay.load.msg.innerHTML = "";
+          };
+          xhr.onprogress = function(e) {
+            if (e.lengthComputable) {
+              var percent = e.loaded / e.total * 100;
+              infoDisplay.load.lbarFill.style.width = percent + "%";
+              var unit, numerator, denominator;
+              if (e.total > 1e6) {
+                unit = "MB";
+                numerator = (e.loaded / 1e6).toFixed(2);
+                denominator = (e.total / 1e6).toFixed(2);
+              } else if (e.total > 1e3) {
+                unit = "kB";
+                numerator = (e.loaded / 1e3).toFixed(1);
+                denominator = (e.total / 1e3).toFixed(1);
+              } else {
+                unit = "B";
+                numerator = e.loaded;
+                denominator = e.total;
+              }
+              infoDisplay.load.msg.innerHTML = numerator + " / " + denominator + " " + unit;
+            } else {
+              infoDisplay.load.lbox.style.display = "block";
+              infoDisplay.load.lbar.style.display = "none";
+            }
+          };
+          try {
+            xhr.open("GET", p, true);
+          } catch (e) {
+            anError(config.strings.malformedURLError);
+          }
+          xhr.responseType = "blob";
+          xhr.setRequestHeader("Accept", "image/*,*/*;q=0.9");
+          xhr.withCredentials = config.crossOrigin === "use-credentials";
+          xhr.send();
+        }
+      }
+      if (config.draggable)
+        uiContainer.classList.add("pnlm-grab");
+      uiContainer.classList.remove("pnlm-grabbing");
+      update2 = config.dynamicUpdate === true;
+      if (config.dynamic && update2) {
+        panoImage = config.panorama;
+        onImageLoad();
+      }
+    }
+    function absoluteURL(url) {
+      return new RegExp("^(?:[a-z]+:)?//", "i").test(url) || url[0] == "/" || url.slice(0, 5) == "blob:";
+    }
+    function onImageLoad() {
+      if (!renderer)
+        renderer = new libpannellum.renderer(renderContainer);
+      if (!listenersAdded) {
+        listenersAdded = true;
+        dragFix.addEventListener("mousedown", onDocumentMouseDown, false);
+        document2.addEventListener("mousemove", onDocumentMouseMove, false);
+        document2.addEventListener("mouseup", onDocumentMouseUp, false);
+        if (config.mouseZoom) {
+          uiContainer.addEventListener("mousewheel", onDocumentMouseWheel, false);
+          uiContainer.addEventListener("DOMMouseScroll", onDocumentMouseWheel, false);
+        }
+        if (config.doubleClickZoom) {
+          dragFix.addEventListener("dblclick", onDocumentDoubleClick, false);
+        }
+        container.addEventListener("mozfullscreenchange", onFullScreenChange, false);
+        container.addEventListener("webkitfullscreenchange", onFullScreenChange, false);
+        container.addEventListener("msfullscreenchange", onFullScreenChange, false);
+        container.addEventListener("fullscreenchange", onFullScreenChange, false);
+        if (typeof ResizeObserver === "function") {
+          resizeObserver = new ResizeObserver(onDocumentResize);
+          resizeObserver.observe(container);
+        } else {
+          window2.addEventListener("resize", onDocumentResize, false);
+          window2.addEventListener("orientationchange", onDocumentResize, false);
+        }
+        if (!config.disableKeyboardCtrl) {
+          container.addEventListener("keydown", onDocumentKeyPress, false);
+          container.addEventListener("keyup", onDocumentKeyUp, false);
+          container.addEventListener("blur", clearKeys, false);
+        }
+        document2.addEventListener("mouseleave", onDocumentMouseUp, false);
+        if (document2.documentElement.style.pointerAction === "" && document2.documentElement.style.touchAction === "") {
+          dragFix.addEventListener("pointerdown", onDocumentPointerDown, false);
+          dragFix.addEventListener("pointermove", onDocumentPointerMove, false);
+          dragFix.addEventListener("pointerup", onDocumentPointerUp, false);
+          dragFix.addEventListener("pointerleave", onDocumentPointerUp, false);
+        } else {
+          dragFix.addEventListener("touchstart", onDocumentTouchStart, false);
+          dragFix.addEventListener("touchmove", onDocumentTouchMove, false);
+          dragFix.addEventListener("touchend", onDocumentTouchEnd, false);
+        }
+        if (window2.navigator.pointerEnabled)
+          container.style.touchAction = "none";
+      }
+      renderInit();
+      setHfov(config.hfov);
+      setTimeout(function() {
+      }, 500);
+    }
+    function parseGPanoXMP(image, url) {
+      var reader = new FileReader();
+      reader.addEventListener("loadend", function() {
+        var img = reader.result;
+        if (navigator.userAgent.toLowerCase().match(/(iphone|ipod|ipad).* os 8_/)) {
+          var flagIndex = img.indexOf("\xFF\xC2");
+          if (flagIndex < 0 || flagIndex > 65536)
+            anError(config.strings.iOS8WebGLError);
+        }
+        var start = img.indexOf("<x:xmpmeta");
+        if (start > -1 && config.ignoreGPanoXMP !== true) {
+          var xmpData = img.substring(start, img.indexOf("</x:xmpmeta>") + 12);
+          var getTag = function(tag) {
+            var result;
+            if (xmpData.indexOf(tag + '="') >= 0) {
+              result = xmpData.substring(xmpData.indexOf(tag + '="') + tag.length + 2);
+              result = result.substring(0, result.indexOf('"'));
+            } else if (xmpData.indexOf(tag + ">") >= 0) {
+              result = xmpData.substring(xmpData.indexOf(tag + ">") + tag.length + 1);
+              result = result.substring(0, result.indexOf("<"));
+            }
+            if (result !== undefined$1) {
+              return Number(result);
+            }
+            return null;
+          };
+          var xmp = {
+            fullWidth: getTag("GPano:FullPanoWidthPixels"),
+            croppedWidth: getTag("GPano:CroppedAreaImageWidthPixels"),
+            fullHeight: getTag("GPano:FullPanoHeightPixels"),
+            croppedHeight: getTag("GPano:CroppedAreaImageHeightPixels"),
+            topPixels: getTag("GPano:CroppedAreaTopPixels"),
+            heading: getTag("GPano:PoseHeadingDegrees"),
+            horizonPitch: getTag("GPano:PosePitchDegrees"),
+            horizonRoll: getTag("GPano:PoseRollDegrees"),
+            pitch: getTag("GPano:InitialViewPitchDegrees"),
+            yaw: getTag("GPano:InitialViewHeadingDegrees"),
+            hfov: getTag("GPano:InitialHorizontalFOVDegrees")
+          };
+          if (xmp.fullWidth !== null && xmp.croppedWidth !== null && xmp.fullHeight !== null && xmp.croppedHeight !== null && xmp.topPixels !== null) {
+            if (specifiedPhotoSphereExcludes.indexOf("haov") < 0)
+              config.haov = xmp.croppedWidth / xmp.fullWidth * 360;
+            if (specifiedPhotoSphereExcludes.indexOf("vaov") < 0)
+              config.vaov = xmp.croppedHeight / xmp.fullHeight * 180;
+            if (specifiedPhotoSphereExcludes.indexOf("vOffset") < 0)
+              config.vOffset = ((xmp.topPixels + xmp.croppedHeight / 2) / xmp.fullHeight - 0.5) * -180;
+            if (xmp.heading !== null && specifiedPhotoSphereExcludes.indexOf("northOffset") < 0) {
+              config.northOffset = xmp.heading;
+              if (config.compass !== false) {
+                config.compass = true;
+              }
+            }
+            if (xmp.horizonPitch !== null && xmp.horizonRoll !== null) {
+              if (specifiedPhotoSphereExcludes.indexOf("horizonPitch") < 0)
+                config.horizonPitch = xmp.horizonPitch;
+              if (specifiedPhotoSphereExcludes.indexOf("horizonRoll") < 0)
+                config.horizonRoll = xmp.horizonRoll;
+            }
+            if (xmp.pitch != null && specifiedPhotoSphereExcludes.indexOf("pitch") < 0)
+              config.pitch = xmp.pitch;
+            if (xmp.yaw != null && specifiedPhotoSphereExcludes.indexOf("yaw") < 0)
+              config.yaw = xmp.yaw;
+            if (xmp.hfov != null && specifiedPhotoSphereExcludes.indexOf("hfov") < 0)
+              config.hfov = xmp.hfov;
+          }
+        }
+        panoImage.src = window2.URL.createObjectURL(image);
+        panoImage.onerror = function() {
+          function getCspHeaders() {
+            if (!window2.fetch)
+              return null;
+            return window2.fetch(document2.location.href).then(function(resp) {
+              return resp.headers.get("Content-Security-Policy");
+            });
+          }
+          getCspHeaders().then(function(cspHeaders) {
+            if (cspHeaders) {
+              var invalidImgSource = cspHeaders.split(";").find(function(p) {
+                var matchstring = p.match(/img-src(.*)/);
+                if (matchstring) {
+                  return !matchstring[1].includes("blob");
+                }
+              });
+              if (invalidImgSource) {
+                console.log("CSP blocks blobs; reverting to URL.");
+                panoImage.crossOrigin = config.crossOrigin;
+                panoImage.src = url;
+              }
+            }
+          });
+        };
+      });
+      if (reader.readAsBinaryString !== undefined$1)
+        reader.readAsBinaryString(image);
+      else
+        reader.readAsText(image);
+    }
+    function anError(errorMsg) {
+      if (errorMsg === undefined$1)
+        errorMsg = config.strings.genericWebGLError;
+      infoDisplay.errorMsg.innerHTML = "<p>" + errorMsg + "</p>";
+      controls.load.style.display = "none";
+      infoDisplay.load.box.style.display = "none";
+      infoDisplay.errorMsg.style.display = "table";
+      error = true;
+      loaded = undefined$1;
+      renderContainer.style.display = "none";
+      fireEvent("error", errorMsg);
+    }
+    function clearError() {
+      if (error) {
+        infoDisplay.load.box.style.display = "none";
+        infoDisplay.errorMsg.style.display = "none";
+        error = false;
+        renderContainer.style.display = "block";
+        fireEvent("errorcleared");
+      }
+    }
+    function showInteractionMessage(interactionMsg) {
+      infoDisplay.interactionMsg.style.opacity = 1;
+      infoDisplay.interactionMsg.innerHTML = "<p>" + interactionMsg + "</p>";
+      infoDisplay.interactionMsg.style.display = "table";
+      fireEvent("messageshown");
+      clearTimeout(infoDisplay.interactionMsg.timeout);
+      infoDisplay.interactionMsg.removeEventListener("transitionend", clearInteractionMessage);
+      infoDisplay.interactionMsg.timeout = setTimeout(function() {
+        infoDisplay.interactionMsg.style.opacity = 0;
+        infoDisplay.interactionMsg.addEventListener("transitionend", clearInteractionMessage);
+      }, 2e3);
+    }
+    function clearInteractionMessage() {
+      infoDisplay.interactionMsg.style.opacity = 0;
+      infoDisplay.interactionMsg.style.display = "none";
+      fireEvent("messagecleared");
+    }
+    function aboutMessage(event2) {
+      var pos = mousePosition(event2);
+      aboutMsg.style.left = pos.x + "px";
+      aboutMsg.style.top = pos.y + "px";
+      clearTimeout(aboutMessage.t1);
+      clearTimeout(aboutMessage.t2);
+      aboutMsg.style.display = "block";
+      aboutMsg.style.opacity = 1;
+      aboutMessage.t1 = setTimeout(function() {
+        aboutMsg.style.opacity = 0;
+      }, 2e3);
+      aboutMessage.t2 = setTimeout(function() {
+        aboutMsg.style.display = "none";
+      }, 2500);
+      event2.preventDefault();
+    }
+    function mousePosition(event2) {
+      var bounds = container.getBoundingClientRect();
+      var pos = {};
+      pos.x = (event2.clientX || event2.pageX) - bounds.left;
+      pos.y = (event2.clientY || event2.pageY) - bounds.top;
+      return pos;
+    }
+    function onDocumentMouseDown(event2) {
+      event2.preventDefault();
+      container.focus();
+      if (!loaded || !config.draggable || config.draggingHotSpot) {
+        return;
+      }
+      var pos = mousePosition(event2);
+      if (config.hotSpotDebug) {
+        var coords = mouseEventToCoords(event2);
+        console.log("Pitch: " + coords[0] + ", Yaw: " + coords[1] + ", Center Pitch: " + config.pitch + ", Center Yaw: " + config.yaw + ", HFOV: " + config.hfov);
+      }
+      stopAnimation();
+      stopOrientation();
+      config.roll = 0;
+      speed.hfov = 0;
+      isUserInteracting = true;
+      latestInteraction = Date.now();
+      onPointerDownPointerX = pos.x;
+      onPointerDownPointerY = pos.y;
+      onPointerDownYaw = config.yaw;
+      onPointerDownPitch = config.pitch;
+      uiContainer.classList.add("pnlm-grabbing");
+      uiContainer.classList.remove("pnlm-grab");
+      fireEvent("mousedown", event2);
+      animateInit();
+    }
+    function onDocumentDoubleClick(event2) {
+      if (config.minHfov === config.hfov) {
+        _this.setHfov(origHfov, 1e3);
+      } else {
+        var coords = mouseEventToCoords(event2);
+        _this.lookAt(coords[0], coords[1], config.minHfov, 1e3);
+      }
+    }
+    function mouseEventToCoords(event2) {
+      var pos = mousePosition(event2);
+      var canvas = renderer.getCanvas();
+      var canvasWidth = canvas.clientWidth, canvasHeight = canvas.clientHeight;
+      var x = pos.x / canvasWidth * 2 - 1;
+      var y = (1 - pos.y / canvasHeight * 2) * canvasHeight / canvasWidth;
+      var focal = 1 / Math.tan(config.hfov * Math.PI / 360);
+      var s = Math.sin(config.pitch * Math.PI / 180);
+      var c = Math.cos(config.pitch * Math.PI / 180);
+      var a = focal * c - y * s;
+      var root = Math.sqrt(x * x + a * a);
+      var pitch = Math.atan((y * c + focal * s) / root) * 180 / Math.PI;
+      var yaw = Math.atan2(x / root, a / root) * 180 / Math.PI + config.yaw;
+      if (yaw < -180)
+        yaw += 360;
+      if (yaw > 180)
+        yaw -= 360;
+      return [pitch, yaw];
+    }
+    function onDocumentMouseMove(event2) {
+      if (draggingHotSpot) {
+        moveHotSpot(draggingHotSpot, event2);
+      } else if (isUserInteracting && loaded) {
+        latestInteraction = Date.now();
+        var canvas = renderer.getCanvas();
+        var canvasWidth = canvas.clientWidth, canvasHeight = canvas.clientHeight;
+        var pos = mousePosition(event2);
+        var yaw = (Math.atan(onPointerDownPointerX / canvasWidth * 2 - 1) - Math.atan(pos.x / canvasWidth * 2 - 1)) * 180 / Math.PI * config.hfov / 90 + onPointerDownYaw;
+        speed.yaw = (yaw - config.yaw) % 360 * 0.2;
+        config.yaw = yaw;
+        var vfov = 2 * Math.atan(Math.tan(config.hfov / 360 * Math.PI) * canvasHeight / canvasWidth) * 180 / Math.PI;
+        var pitch = (Math.atan(pos.y / canvasHeight * 2 - 1) - Math.atan(onPointerDownPointerY / canvasHeight * 2 - 1)) * 180 / Math.PI * vfov / 90 + onPointerDownPitch;
+        speed.pitch = (pitch - config.pitch) * 0.2;
+        config.pitch = pitch;
+      }
+    }
+    function onDocumentMouseUp(event2) {
+      if (draggingHotSpot && draggingHotSpot.dragHandlerFunc)
+        draggingHotSpot.dragHandlerFunc(event2, draggingHotSpot.dragHandlerArgs);
+      draggingHotSpot = null;
+      if (!isUserInteracting) {
+        return;
+      }
+      isUserInteracting = false;
+      if (Date.now() - latestInteraction > 15) {
+        speed.pitch = speed.yaw = 0;
+      }
+      uiContainer.classList.add("pnlm-grab");
+      uiContainer.classList.remove("pnlm-grabbing");
+      latestInteraction = Date.now();
+      fireEvent("mouseup", event2);
+    }
+    function onDocumentTouchStart(event2) {
+      if (!loaded || !config.draggable || draggingHotSpot) {
+        return;
+      }
+      stopAnimation();
+      stopOrientation();
+      config.roll = 0;
+      speed.hfov = 0;
+      var pos0 = mousePosition(event2.targetTouches[0]);
+      onPointerDownPointerX = pos0.x;
+      onPointerDownPointerY = pos0.y;
+      if (event2.targetTouches.length == 2) {
+        var pos1 = mousePosition(event2.targetTouches[1]);
+        onPointerDownPointerX += (pos1.x - pos0.x) * 0.5;
+        onPointerDownPointerY += (pos1.y - pos0.y) * 0.5;
+        onPointerDownPointerDist = Math.sqrt((pos0.x - pos1.x) * (pos0.x - pos1.x) + (pos0.y - pos1.y) * (pos0.y - pos1.y));
+      }
+      isUserInteracting = true;
+      latestInteraction = Date.now();
+      onPointerDownYaw = config.yaw;
+      onPointerDownPitch = config.pitch;
+      fireEvent("touchstart", event2);
+      animateInit();
+    }
+    function onDocumentTouchMove(event2) {
+      if (!config.draggable) {
+        return;
+      }
+      if (!config.dragConfirm)
+        event2.preventDefault();
+      if (loaded) {
+        latestInteraction = Date.now();
+      }
+      if (isUserInteracting && loaded) {
+        var pos0 = mousePosition(event2.targetTouches[0]);
+        var clientX = pos0.x;
+        var clientY = pos0.y;
+        if (event2.targetTouches.length == 2 && onPointerDownPointerDist != -1) {
+          var pos1 = mousePosition(event2.targetTouches[1]);
+          clientX += (pos1.x - pos0.x) * 0.5;
+          clientY += (pos1.y - pos0.y) * 0.5;
+          var clientDist = Math.sqrt((pos0.x - pos1.x) * (pos0.x - pos1.x) + (pos0.y - pos1.y) * (pos0.y - pos1.y));
+          setHfov(config.hfov + (onPointerDownPointerDist - clientDist) * 0.1);
+          onPointerDownPointerDist = clientDist;
+        }
+        var touchmovePanSpeedCoeff = config.hfov / 360 * config.touchPanSpeedCoeffFactor;
+        if (!fullscreenActive && (config.dragConfirm == "both" || config.dragConfirm == "yaw") && event2.targetTouches.length != 2) {
+          if (onPointerDownPointerX != clientX) {
+            if (config.dragConfirm == "yaw")
+              showInteractionMessage(config.strings.twoTouchXActivate);
+            else
+              showInteractionMessage(config.strings.twoTouchActivate);
+          }
+        } else {
+          var yaw = (onPointerDownPointerX - clientX) * touchmovePanSpeedCoeff + onPointerDownYaw;
+          speed.yaw = (yaw - config.yaw) % 360 * 0.2;
+          config.yaw = yaw;
+        }
+        if (!fullscreenActive && (config.dragConfirm == "both" || config.dragConfirm == "pitch") && event2.targetTouches.length != 2) {
+          if (onPointerDownPointerY != clientY) {
+            if (config.dragConfirm == "pitch")
+              showInteractionMessage(config.strings.twoTouchYActivate);
+            else
+              showInteractionMessage(config.strings.twoTouchActivate);
+          }
+        } else {
+          var pitch = (clientY - onPointerDownPointerY) * touchmovePanSpeedCoeff + onPointerDownPitch;
+          speed.pitch = (pitch - config.pitch) * 0.2;
+          config.pitch = pitch;
+        }
+        if ((config.dragConfirm == "yaw" || config.dragConfirm == "pitch" || config.dragConfirm == "both") && event2.targetTouches.length == 2) {
+          clearInteractionMessage();
+          event2.preventDefault();
+        }
+      }
+    }
+    function onDocumentTouchEnd() {
+      draggingHotSpot = null;
+      isUserInteracting = false;
+      if (Date.now() - latestInteraction > 150) {
+        speed.pitch = speed.yaw = 0;
+      }
+      onPointerDownPointerDist = -1;
+      latestInteraction = Date.now();
+      fireEvent("touchend", event);
+    }
+    var pointerIDs = [], pointerCoordinates = [];
+    function onDocumentPointerDown(event2) {
+      if (event2.pointerType == "touch") {
+        if (!loaded || !config.draggable)
+          return;
+        pointerIDs.push(event2.pointerId);
+        pointerCoordinates.push({ clientX: event2.clientX, clientY: event2.clientY });
+        event2.targetTouches = pointerCoordinates;
+        onDocumentTouchStart(event2);
+        event2.preventDefault();
+      }
+    }
+    function onDocumentPointerMove(event2) {
+      if (event2.pointerType == "touch") {
+        if (draggingHotSpot) {
+          moveHotSpot(draggingHotSpot, event2);
+          return;
+        }
+        if (!config.draggable)
+          return;
+        for (var i2 = 0; i2 < pointerIDs.length; i2++) {
+          if (event2.pointerId == pointerIDs[i2]) {
+            pointerCoordinates[i2].clientX = event2.clientX;
+            pointerCoordinates[i2].clientY = event2.clientY;
+            event2.targetTouches = pointerCoordinates;
+            onDocumentTouchMove(event2);
+            event2.preventDefault();
+            return;
+          }
+        }
+      }
+    }
+    function onDocumentPointerUp(event2) {
+      if (draggingHotSpot && draggingHotSpot.dragHandlerFunc)
+        draggingHotSpot.dragHandlerFunc(event2, draggingHotSpot.dragHandlerArgs);
+      draggingHotSpot = null;
+      if (event2.pointerType == "touch") {
+        var defined = false;
+        for (var i2 = 0; i2 < pointerIDs.length; i2++) {
+          if (event2.pointerId == pointerIDs[i2])
+            pointerIDs[i2] = undefined$1;
+          if (pointerIDs[i2])
+            defined = true;
+        }
+        if (!defined) {
+          pointerIDs = [];
+          pointerCoordinates = [];
+          onDocumentTouchEnd();
+        }
+        event2.preventDefault();
+      }
+    }
+    function onDocumentMouseWheel(event2) {
+      if (!loaded || config.mouseZoom == "fullscreenonly" && !fullscreenActive) {
+        return;
+      }
+      if (!fullscreenActive && config.mouseZoom == "ctrl" && !event2.ctrlKey) {
+        var keyname = navigator.platform.indexOf("Mac") != -1 ? "control" : "ctrl";
+        showInteractionMessage(config.strings.ctrlZoomActivate.replace("%s", '<kbd class="pnlm-outline">' + keyname + "</kbd>"));
+        return;
+      }
+      clearInteractionMessage();
+      event2.preventDefault();
+      stopAnimation();
+      latestInteraction = Date.now();
+      if (event2.wheelDeltaY) {
+        setHfov(config.hfov - event2.wheelDeltaY * 0.05);
+        speed.hfov = event2.wheelDelta < 0 ? 1 : -1;
+      } else if (event2.wheelDelta) {
+        setHfov(config.hfov - event2.wheelDelta * 0.05);
+        speed.hfov = event2.wheelDelta < 0 ? 1 : -1;
+      } else if (event2.detail) {
+        setHfov(config.hfov + event2.detail * 1.5);
+        speed.hfov = event2.detail > 0 ? 1 : -1;
+      }
+      animateInit();
+    }
+    function onDocumentKeyPress(event2) {
+      stopAnimation();
+      latestInteraction = Date.now();
+      stopOrientation();
+      config.roll = 0;
+      var keynumber = event2.which || event2.keycode;
+      if (config.capturedKeyNumbers.indexOf(keynumber) < 0)
+        return;
+      if (!fullscreenActive && (keynumber == 16 || keynumber == 17) && config.mouseZoom == "ctrl")
+        return;
+      event2.preventDefault();
+      if (keynumber == 27) {
+        if (fullscreenActive) {
+          toggleFullscreen();
+        }
+      } else {
+        changeKey(keynumber, true);
+      }
+    }
+    function clearKeys() {
+      for (var i2 = 0; i2 < 10; i2++) {
+        keysDown[i2] = false;
+      }
+    }
+    function onDocumentKeyUp(event2) {
+      var keynumber = event2.which || event2.keycode;
+      if (config.capturedKeyNumbers.indexOf(keynumber) < 0)
+        return;
+      event2.preventDefault();
+      changeKey(keynumber, false);
+    }
+    function changeKey(keynumber, value) {
+      var keyChanged = false;
+      switch (keynumber) {
+        case 109:
+        case 189:
+        case 17:
+        case 173:
+          if (keysDown[0] != value) {
+            keyChanged = true;
+          }
+          keysDown[0] = value;
+          break;
+        case 107:
+        case 187:
+        case 16:
+        case 61:
+          if (keysDown[1] != value) {
+            keyChanged = true;
+          }
+          keysDown[1] = value;
+          break;
+        case 38:
+          if (keysDown[2] != value) {
+            keyChanged = true;
+          }
+          keysDown[2] = value;
+          break;
+        case 87:
+          if (keysDown[6] != value) {
+            keyChanged = true;
+          }
+          keysDown[6] = value;
+          break;
+        case 40:
+          if (keysDown[3] != value) {
+            keyChanged = true;
+          }
+          keysDown[3] = value;
+          break;
+        case 83:
+          if (keysDown[7] != value) {
+            keyChanged = true;
+          }
+          keysDown[7] = value;
+          break;
+        case 37:
+          if (keysDown[4] != value) {
+            keyChanged = true;
+          }
+          keysDown[4] = value;
+          break;
+        case 65:
+          if (keysDown[8] != value) {
+            keyChanged = true;
+          }
+          keysDown[8] = value;
+          break;
+        case 39:
+          if (keysDown[5] != value) {
+            keyChanged = true;
+          }
+          keysDown[5] = value;
+          break;
+        case 68:
+          if (keysDown[9] != value) {
+            keyChanged = true;
+          }
+          keysDown[9] = value;
+      }
+      if (keyChanged && value) {
+        if (typeof performance !== "undefined" && performance.now()) {
+          prevTime = performance.now();
+        } else {
+          prevTime = Date.now();
+        }
+        animateInit();
+      }
+    }
+    function keyRepeat() {
+      if (!loaded) {
+        return;
+      }
+      var isKeyDown = false;
+      var prevPitch = config.pitch;
+      var prevYaw = config.yaw;
+      var prevZoom = config.hfov;
+      var newTime;
+      if (typeof performance !== "undefined" && performance.now()) {
+        newTime = performance.now();
+      } else {
+        newTime = Date.now();
+      }
+      if (prevTime === undefined$1) {
+        prevTime = newTime;
+      }
+      var diff = (newTime - prevTime) * config.hfov / 1200;
+      diff = Math.min(diff, 10);
+      if (keysDown[0] && config.keyboardZoom === true) {
+        setHfov(config.hfov + (speed.hfov * 0.8 + 0.4) * diff);
+        isKeyDown = true;
+      }
+      if (keysDown[1] && config.keyboardZoom === true) {
+        setHfov(config.hfov + (speed.hfov * 0.8 - 0.2) * diff);
+        isKeyDown = true;
+      }
+      if (keysDown[2] || keysDown[6]) {
+        config.pitch += (speed.pitch * 0.8 + 0.2) * diff;
+        isKeyDown = true;
+      }
+      if (keysDown[3] || keysDown[7]) {
+        config.pitch += (speed.pitch * 0.8 - 0.2) * diff;
+        isKeyDown = true;
+      }
+      if (keysDown[4] || keysDown[8]) {
+        config.yaw += (speed.yaw * 0.8 - 0.2) * diff;
+        isKeyDown = true;
+      }
+      if (keysDown[5] || keysDown[9]) {
+        config.yaw += (speed.yaw * 0.8 + 0.2) * diff;
+        isKeyDown = true;
+      }
+      if (isKeyDown)
+        latestInteraction = Date.now();
+      if (config.autoRotate) {
+        if (newTime - prevTime > 1e-3) {
+          var timeDiff = (newTime - prevTime) / 1e3;
+          var yawDiff = (speed.yaw / timeDiff * diff - config.autoRotate * 0.2) * timeDiff;
+          yawDiff = (-config.autoRotate > 0 ? 1 : -1) * Math.min(Math.abs(config.autoRotate * timeDiff), Math.abs(yawDiff));
+          config.yaw += yawDiff;
+        }
+        if (config.autoRotateStopDelay) {
+          config.autoRotateStopDelay -= newTime - prevTime;
+          if (config.autoRotateStopDelay <= 0) {
+            config.autoRotateStopDelay = false;
+            autoRotateSpeed = config.autoRotate;
+            config.autoRotate = 0;
+          }
+        }
+      }
+      if (animatedMove.pitch) {
+        animateMove("pitch");
+        prevPitch = config.pitch;
+      }
+      if (animatedMove.yaw) {
+        animateMove("yaw");
+        prevYaw = config.yaw;
+      }
+      if (animatedMove.hfov) {
+        animateMove("hfov");
+        prevZoom = config.hfov;
+      }
+      if (diff > 0 && !config.autoRotate) {
+        var slowDownFactor = 1 - config.friction;
+        if (!keysDown[4] && !keysDown[5] && !keysDown[8] && !keysDown[9] && !animatedMove.yaw) {
+          config.yaw += speed.yaw * diff * slowDownFactor;
+        }
+        if (!keysDown[2] && !keysDown[3] && !keysDown[6] && !keysDown[7] && !animatedMove.pitch) {
+          config.pitch += speed.pitch * diff * slowDownFactor;
+        }
+        if (!keysDown[0] && !keysDown[1] && !animatedMove.hfov) {
+          if (config.hfov > 90) {
+            slowDownFactor *= 1 - (config.hfov - 90) / 90;
+          }
+          setHfov(config.hfov + speed.hfov * diff * slowDownFactor);
+        }
+      }
+      prevTime = newTime;
+      if (diff > 0) {
+        speed.yaw = speed.yaw * 0.8 + (config.yaw - prevYaw) / diff * 0.2;
+        speed.pitch = speed.pitch * 0.8 + (config.pitch - prevPitch) / diff * 0.2;
+        speed.hfov = speed.hfov * 0.8 + (config.hfov - prevZoom) / diff * 0.2;
+        var maxSpeed = config.autoRotate ? Math.abs(config.autoRotate) : 5;
+        speed.yaw = Math.min(maxSpeed, Math.max(speed.yaw, -maxSpeed));
+        speed.pitch = Math.min(maxSpeed, Math.max(speed.pitch, -maxSpeed));
+        speed.hfov = Math.min(maxSpeed, Math.max(speed.hfov, -maxSpeed));
+      }
+      if (keysDown[0] && keysDown[1]) {
+        speed.hfov = 0;
+      }
+      if ((keysDown[2] || keysDown[6]) && (keysDown[3] || keysDown[7])) {
+        speed.pitch = 0;
+      }
+      if ((keysDown[4] || keysDown[8]) && (keysDown[5] || keysDown[9])) {
+        speed.yaw = 0;
+      }
+    }
+    function animateMove(axis) {
+      var t = animatedMove[axis];
+      var normTime = Math.min(1, Math.max((Date.now() - t.startTime) / 1e3 / (t.duration / 1e3), 0));
+      var result = t.startPosition + config.animationTimingFunction(normTime) * (t.endPosition - t.startPosition);
+      if (t.endPosition > t.startPosition && result >= t.endPosition || t.endPosition < t.startPosition && result <= t.endPosition || t.endPosition === t.startPosition) {
+        result = t.endPosition;
+        speed[axis] = 0;
+        delete animatedMove[axis];
+      }
+      config[axis] = result;
+    }
+    function timingFunction(t) {
+      return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    }
+    function onDocumentResize() {
+      onFullScreenChange("resize");
+    }
+    function animateInit() {
+      if (animating) {
+        return;
+      }
+      animating = true;
+      animate();
+    }
+    function animate() {
+      if (destroyed) {
+        return;
+      }
+      render();
+      if (autoRotateStart)
+        clearTimeout(autoRotateStart);
+      if (isUserInteracting || orientation === true) {
+        requestAnimationFrame(animate);
+      } else if (keysDown[0] || keysDown[1] || keysDown[2] || keysDown[3] || keysDown[4] || keysDown[5] || keysDown[6] || keysDown[7] || keysDown[8] || keysDown[9] || config.autoRotate || animatedMove.pitch || animatedMove.yaw || animatedMove.hfov || Math.abs(speed.yaw) > 0.01 || Math.abs(speed.pitch) > 0.01 || Math.abs(speed.hfov) > 0.01) {
+        keyRepeat();
+        if (config.autoRotateInactivityDelay >= 0 && autoRotateSpeed && Date.now() - latestInteraction > config.autoRotateInactivityDelay && !config.autoRotate) {
+          config.autoRotate = autoRotateSpeed;
+          _this.lookAt(origPitch, undefined$1, origHfov, 3e3);
+        }
+        requestAnimationFrame(animate);
+      } else if (renderer && (renderer.isLoading() || config.dynamic === true && update2)) {
+        requestAnimationFrame(animate);
+      } else {
+        if (_this.getPitch && _this.getYaw && _this.getHfov)
+          fireEvent("animatefinished", { pitch: _this.getPitch(), yaw: _this.getYaw(), hfov: _this.getHfov() });
+        animating = false;
+        prevTime = undefined$1;
+        var autoRotateStartTime = config.autoRotateInactivityDelay - (Date.now() - latestInteraction);
+        if (autoRotateStartTime > 0) {
+          autoRotateStart = setTimeout(function() {
+            config.autoRotate = autoRotateSpeed;
+            _this.lookAt(origPitch, undefined$1, origHfov, 3e3);
+            animateInit();
+          }, autoRotateStartTime);
+        } else if (config.autoRotateInactivityDelay >= 0 && autoRotateSpeed) {
+          config.autoRotate = autoRotateSpeed;
+          _this.lookAt(origPitch, undefined$1, origHfov, 3e3);
+          animateInit();
+        }
+      }
+    }
+    function render() {
+      var tmpyaw;
+      if (loaded) {
+        var canvas = renderer.getCanvas();
+        if (config.autoRotate !== false) {
+          if (config.yaw > 360) {
+            config.yaw -= 360;
+          } else if (config.yaw < -360) {
+            config.yaw += 360;
+          }
+        }
+        tmpyaw = config.yaw;
+        var hoffcut = 0;
+        if (config.avoidShowingBackground) {
+          var hfov2 = config.hfov / 2, vfov2 = Math.atan2(Math.tan(hfov2 / 180 * Math.PI), canvas.width / canvas.height) * 180 / Math.PI, transposed = config.vaov > config.haov;
+          if (transposed) {
+            vfov2 * (1 - Math.min(Math.cos((config.pitch - hfov2) / 180 * Math.PI), Math.cos((config.pitch + hfov2) / 180 * Math.PI)));
+          } else {
+            hoffcut = hfov2 * (1 - Math.min(Math.cos((config.pitch - vfov2) / 180 * Math.PI), Math.cos((config.pitch + vfov2) / 180 * Math.PI)));
+          }
+        }
+        var yawRange = config.maxYaw - config.minYaw, minYaw = -180, maxYaw = 180;
+        if (yawRange < 360) {
+          minYaw = config.minYaw + config.hfov / 2 + hoffcut;
+          maxYaw = config.maxYaw - config.hfov / 2 - hoffcut;
+          if (yawRange < config.hfov) {
+            minYaw = maxYaw = (minYaw + maxYaw) / 2;
+          }
+          config.yaw = Math.max(minYaw, Math.min(maxYaw, config.yaw));
+        }
+        if (!(config.autoRotate !== false)) {
+          if (config.yaw > 360) {
+            config.yaw -= 360;
+          } else if (config.yaw < -360) {
+            config.yaw += 360;
+          }
+        }
+        if (config.autoRotate !== false && tmpyaw != config.yaw && prevTime !== undefined$1) {
+          config.autoRotate *= -1;
+        }
+        var vfov = 2 * Math.atan(Math.tan(config.hfov / 180 * Math.PI * 0.5) / (canvas.width / canvas.height)) / Math.PI * 180;
+        var minPitch = config.minPitch + vfov / 2, maxPitch = config.maxPitch - vfov / 2;
+        var pitchRange = config.maxPitch - config.minPitch;
+        if (pitchRange < vfov) {
+          minPitch = maxPitch = (minPitch + maxPitch) / 2;
+        }
+        if (isNaN(minPitch))
+          minPitch = -90;
+        if (isNaN(maxPitch))
+          maxPitch = 90;
+        config.pitch = Math.max(minPitch, Math.min(maxPitch, config.pitch));
+        renderer.render(config.pitch * Math.PI / 180, config.yaw * Math.PI / 180, config.hfov * Math.PI / 180, { roll: config.roll * Math.PI / 180 });
+        renderHotSpots();
+        if (config.compass) {
+          compass.style.transform = "rotate(" + (-config.yaw - config.northOffset) + "deg)";
+          compass.style.webkitTransform = "rotate(" + (-config.yaw - config.northOffset) + "deg)";
+        }
+      }
+    }
+    function Quaternion(w, x, y, z) {
+      this.w = w;
+      this.x = x;
+      this.y = y;
+      this.z = z;
+    }
+    Quaternion.prototype.multiply = function(q) {
+      return new Quaternion(this.w * q.w - this.x * q.x - this.y * q.y - this.z * q.z, this.x * q.w + this.w * q.x + this.y * q.z - this.z * q.y, this.y * q.w + this.w * q.y + this.z * q.x - this.x * q.z, this.z * q.w + this.w * q.z + this.x * q.y - this.y * q.x);
+    };
+    Quaternion.prototype.toEulerAngles = function() {
+      var phi = Math.atan2(2 * (this.w * this.x + this.y * this.z), 1 - 2 * (this.x * this.x + this.y * this.y)), theta = Math.asin(2 * (this.w * this.y - this.z * this.x)), psi = Math.atan2(2 * (this.w * this.z + this.x * this.y), 1 - 2 * (this.y * this.y + this.z * this.z));
+      return [phi, theta, psi];
+    };
+    function taitBryanToQuaternion(alpha, beta, gamma) {
+      var r = [
+        beta ? beta * Math.PI / 180 / 2 : 0,
+        gamma ? gamma * Math.PI / 180 / 2 : 0,
+        alpha ? alpha * Math.PI / 180 / 2 : 0
+      ];
+      var c = [Math.cos(r[0]), Math.cos(r[1]), Math.cos(r[2])], s = [Math.sin(r[0]), Math.sin(r[1]), Math.sin(r[2])];
+      return new Quaternion(c[0] * c[1] * c[2] - s[0] * s[1] * s[2], s[0] * c[1] * c[2] - c[0] * s[1] * s[2], c[0] * s[1] * c[2] + s[0] * c[1] * s[2], c[0] * c[1] * s[2] + s[0] * s[1] * c[2]);
+    }
+    function computeQuaternion(alpha, beta, gamma) {
+      var quaternion = taitBryanToQuaternion(alpha, beta, gamma);
+      quaternion = quaternion.multiply(new Quaternion(Math.sqrt(0.5), -Math.sqrt(0.5), 0, 0));
+      var angle2 = window2.orientation ? -window2.orientation * Math.PI / 180 / 2 : 0;
+      return quaternion.multiply(new Quaternion(Math.cos(angle2), 0, -Math.sin(angle2), 0));
+    }
+    function orientationListener(e) {
+      var q = computeQuaternion(e.alpha, e.beta, e.gamma).toEulerAngles();
+      if (typeof orientation == "number" && orientation < 10) {
+        orientation += 1;
+      } else if (orientation === 10) {
+        orientationYawOffset = q[2] / Math.PI * 180 + config.yaw;
+        orientation = true;
+        requestAnimationFrame(animate);
+      } else {
+        config.pitch = q[0] / Math.PI * 180;
+        config.roll = -q[1] / Math.PI * 180;
+        config.yaw = -q[2] / Math.PI * 180 + orientationYawOffset;
+      }
+    }
+    function renderInit() {
+      try {
+        var params = {};
+        if (config.horizonPitch !== undefined$1)
+          params.horizonPitch = config.horizonPitch * Math.PI / 180;
+        if (config.horizonRoll !== undefined$1)
+          params.horizonRoll = config.horizonRoll * Math.PI / 180;
+        if (config.backgroundColor !== undefined$1)
+          params.backgroundColor = config.backgroundColor;
+        renderer.init(panoImage, config.type, config.dynamic, config.haov * Math.PI / 180, config.vaov * Math.PI / 180, config.vOffset * Math.PI / 180, renderInitCallback, params);
+        if (config.dynamic !== true) {
+          panoImage = undefined$1;
+        }
+      } catch (event2) {
+        if (event2.type == "webgl error" || event2.type == "no webgl") {
+          anError();
+        } else if (event2.type == "webgl size error") {
+          anError(config.strings.textureSizeError.replace("%s", event2.width).replace("%s", event2.maxWidth));
+        } else {
+          anError(config.strings.unknownError);
+          throw event2;
+        }
+      }
+    }
+    function renderInitCallback() {
+      if (config.sceneFadeDuration && renderer.fadeImg !== undefined$1) {
+        renderer.fadeImg.style.opacity = 0;
+        var fadeImg = renderer.fadeImg;
+        delete renderer.fadeImg;
+        setTimeout(function() {
+          renderContainer.removeChild(fadeImg);
+          fireEvent("scenechangefadedone");
+        }, config.sceneFadeDuration);
+      }
+      if (config.compass) {
+        compass.style.display = "inline";
+      } else {
+        compass.style.display = "none";
+      }
+      createHotSpots();
+      infoDisplay.load.box.style.display = "none";
+      if (preview !== undefined$1) {
+        renderContainer.removeChild(preview);
+        preview = undefined$1;
+      }
+      loaded = true;
+      animateInit();
+      fireEvent("load");
+    }
+    function createHotSpot(hs) {
+      hs.pitch = Number(hs.pitch) || 0;
+      hs.yaw = Number(hs.yaw) || 0;
+      var div2 = document2.createElement("div");
+      div2.className = "pnlm-hotspot-base";
+      if (hs.cssClass)
+        div2.className += " " + hs.cssClass;
+      else
+        div2.className += " pnlm-hotspot pnlm-sprite pnlm-" + escapeHTML(hs.type);
+      var span = document2.createElement("span");
+      if (hs.text)
+        span.innerHTML = escapeHTML(hs.text);
+      var a;
+      if (hs.video) {
+        var video = document2.createElement("video"), vidp = hs.video;
+        if (config.basePath && !absoluteURL(vidp))
+          vidp = config.basePath + vidp;
+        video.src = sanitizeURL(vidp);
+        video.controls = true;
+        video.style.width = hs.width + "px";
+        uiContainer.appendChild(div2);
+        span.appendChild(video);
+      } else if (hs.image) {
+        var imgp = hs.image;
+        if (config.basePath && !absoluteURL(imgp))
+          imgp = config.basePath + imgp;
+        a = document2.createElement("a");
+        a.href = sanitizeURL(hs.URL ? hs.URL : imgp, true);
+        if (config.targetBlank) {
+          a.target = "_blank";
+          a.rel = "noopener";
+        }
+        span.appendChild(a);
+        var image = document2.createElement("img");
+        image.src = sanitizeURL(imgp);
+        image.style.width = hs.width + "px";
+        image.style.paddingTop = "5px";
+        uiContainer.appendChild(div2);
+        a.appendChild(image);
+        span.style.maxWidth = "initial";
+      } else if (hs.URL) {
+        a = document2.createElement("a");
+        a.href = sanitizeURL(hs.URL, true);
+        if (hs.attributes) {
+          for (var key in hs.attributes) {
+            a.setAttribute(key, hs.attributes[key]);
+          }
+        } else if (config.targetBlank) {
+          a.target = "_blank";
+          a.rel = "noopener";
+        }
+        uiContainer.appendChild(a);
+        div2.className += " pnlm-pointer";
+        span.className += " pnlm-pointer";
+        a.appendChild(div2);
+      } else {
+        if (hs.sceneId) {
+          div2.onclick = div2.ontouchend = function() {
+            if (!div2.clicked) {
+              div2.clicked = true;
+              loadScene(hs.sceneId, hs.targetPitch, hs.targetYaw, hs.targetHfov);
+            }
+            return false;
+          };
+          div2.className += " pnlm-pointer";
+          span.className += " pnlm-pointer";
+        }
+        uiContainer.appendChild(div2);
+      }
+      if (hs.createTooltipFunc) {
+        hs.createTooltipFunc(div2, hs.createTooltipArgs);
+      } else if (hs.text || hs.video || hs.image) {
+        div2.classList.add("pnlm-tooltip");
+        div2.appendChild(span);
+        span.style.width = span.scrollWidth - 20 + "px";
+        span.style.marginLeft = -(span.scrollWidth - div2.offsetWidth) / 2 + "px";
+        span.style.marginTop = -span.scrollHeight - 12 + "px";
+      }
+      if (hs.clickHandlerFunc) {
+        div2.addEventListener("click", function(e) {
+          hs.clickHandlerFunc(e, hs.clickHandlerArgs);
+        }, "false");
+        if (document2.documentElement.style.pointerAction === "" && document2.documentElement.style.touchAction === "") {
+          div2.addEventListener("pointerup", function(e) {
+            hs.clickHandlerFunc(e, hs.clickHandlerArgs);
+          }, false);
+        } else {
+          div2.addEventListener("touchend", function(e) {
+            hs.clickHandlerFunc(e, hs.clickHandlerArgs);
+          }, false);
+        }
+        div2.className += " pnlm-pointer";
+        span.className += " pnlm-pointer";
+      }
+      if (hs.draggable) {
+        div2.addEventListener("mousedown", function(e) {
+          if (hs.dragHandlerFunc)
+            hs.dragHandlerFunc(e, hs.dragHandlerArgs);
+          draggingHotSpot = hs;
+        });
+        if (document2.documentElement.style.pointerAction === "" && document2.documentElement.style.touchAction === "") {
+          div2.addEventListener("pointerdown", function(e) {
+            if (hs.dragHandlerFunc)
+              hs.dragHandlerFunc(e, hs.dragHandlerArgs);
+            draggingHotSpot = hs;
+          });
+        }
+        div2.addEventListener("touchmove", function(e) {
+          moveHotSpot(hs, e.targetTouches[0]);
+        });
+        div2.addEventListener("touchend", function(e) {
+          if (hs.dragHandlerFunc)
+            hs.dragHandlerFunc(e, hs.dragHandlerArgs);
+          draggingHotSpot = null;
+        });
+      }
+      hs.div = div2;
+    }
+    function moveHotSpot(hs, event2) {
+      var coords = mouseEventToCoords(event2);
+      hs.pitch = coords[0];
+      hs.yaw = coords[1];
+      renderHotSpot(hs);
+    }
+    function createHotSpots() {
+      if (hotspotsCreated)
+        return;
+      if (!config.hotSpots) {
+        config.hotSpots = [];
+      } else {
+        config.hotSpots = config.hotSpots.sort(function(a, b) {
+          return a.pitch < b.pitch;
+        });
+        config.hotSpots.forEach(createHotSpot);
+      }
+      hotspotsCreated = true;
+      renderHotSpots();
+    }
+    function destroyHotSpots() {
+      var hs = config.hotSpots;
+      hotspotsCreated = false;
+      delete config.hotSpots;
+      if (hs) {
+        for (var i2 = 0; i2 < hs.length; i2++) {
+          var current = hs[i2].div;
+          if (current) {
+            while (current.parentNode && current.parentNode != uiContainer) {
+              current = current.parentNode;
+            }
+            uiContainer.removeChild(current);
+          }
+          delete hs[i2].div;
+        }
+      }
+    }
+    function renderHotSpot(hs) {
+      var hsPitchSin = Math.sin(hs.pitch * Math.PI / 180), hsPitchCos = Math.cos(hs.pitch * Math.PI / 180), configPitchSin = Math.sin(config.pitch * Math.PI / 180), configPitchCos = Math.cos(config.pitch * Math.PI / 180), yawCos = Math.cos((-hs.yaw + config.yaw) * Math.PI / 180);
+      var z = hsPitchSin * configPitchSin + hsPitchCos * yawCos * configPitchCos;
+      if (hs.yaw <= 90 && hs.yaw > -90 && z <= 0 || (hs.yaw > 90 || hs.yaw <= -90) && z <= 0) {
+        hs.div.style.visibility = "hidden";
+      } else {
+        var yawSin = Math.sin((-hs.yaw + config.yaw) * Math.PI / 180), hfovTan = Math.tan(config.hfov * Math.PI / 360);
+        hs.div.style.visibility = "visible";
+        var canvas = renderer.getCanvas(), canvasWidth = canvas.clientWidth, canvasHeight = canvas.clientHeight;
+        var coord = [
+          -canvasWidth / hfovTan * yawSin * hsPitchCos / z / 2,
+          -canvasWidth / hfovTan * (hsPitchSin * configPitchCos - hsPitchCos * yawCos * configPitchSin) / z / 2
+        ];
+        var rollSin = Math.sin(config.roll * Math.PI / 180), rollCos = Math.cos(config.roll * Math.PI / 180);
+        coord = [
+          coord[0] * rollCos - coord[1] * rollSin,
+          coord[0] * rollSin + coord[1] * rollCos
+        ];
+        coord[0] += (canvasWidth - hs.div.offsetWidth) / 2;
+        coord[1] += (canvasHeight - hs.div.offsetHeight) / 2;
+        var transform = "translate(" + coord[0] + "px, " + coord[1] + "px) translateZ(9999px) rotate(" + config.roll + "deg)";
+        if (hs.scale) {
+          transform += " scale(" + origHfov / config.hfov / z + ")";
+        }
+        hs.div.style.webkitTransform = transform;
+        hs.div.style.MozTransform = transform;
+        hs.div.style.transform = transform;
+      }
+    }
+    function renderHotSpots() {
+      config.hotSpots.forEach(renderHotSpot);
+    }
+    function mergeConfig(sceneId) {
+      config = {};
+      var k, s;
+      var photoSphereExcludes = ["haov", "vaov", "vOffset", "northOffset", "horizonPitch", "horizonRoll"];
+      specifiedPhotoSphereExcludes = [];
+      for (k in defaultConfig) {
+        if (defaultConfig.hasOwnProperty(k)) {
+          config[k] = defaultConfig[k];
+        }
+      }
+      for (k in initialConfig.default) {
+        if (initialConfig.default.hasOwnProperty(k)) {
+          if (k == "strings") {
+            for (s in initialConfig.default.strings) {
+              if (initialConfig.default.strings.hasOwnProperty(s)) {
+                config.strings[s] = escapeHTML(initialConfig.default.strings[s]);
+              }
+            }
+          } else {
+            config[k] = initialConfig.default[k];
+            if (photoSphereExcludes.indexOf(k) >= 0) {
+              specifiedPhotoSphereExcludes.push(k);
+            }
+          }
+        }
+      }
+      if (sceneId !== null && sceneId !== "" && initialConfig.scenes && initialConfig.scenes[sceneId]) {
+        var scene = initialConfig.scenes[sceneId];
+        for (k in scene) {
+          if (scene.hasOwnProperty(k)) {
+            if (k == "strings") {
+              for (s in scene.strings) {
+                if (scene.strings.hasOwnProperty(s)) {
+                  config.strings[s] = escapeHTML(scene.strings[s]);
+                }
+              }
+            } else {
+              config[k] = scene[k];
+              if (photoSphereExcludes.indexOf(k) >= 0) {
+                specifiedPhotoSphereExcludes.push(k);
+              }
+            }
+          }
+        }
+        config.scene = sceneId;
+      }
+      for (k in initialConfig) {
+        if (initialConfig.hasOwnProperty(k)) {
+          if (k == "strings") {
+            for (s in initialConfig.strings) {
+              if (initialConfig.strings.hasOwnProperty(s)) {
+                config.strings[s] = escapeHTML(initialConfig.strings[s]);
+              }
+            }
+          } else {
+            config[k] = initialConfig[k];
+            if (photoSphereExcludes.indexOf(k) >= 0) {
+              specifiedPhotoSphereExcludes.push(k);
+            }
+          }
+        }
+      }
+    }
+    function processOptions(isPreview) {
+      isPreview = isPreview ? isPreview : false;
+      if (isPreview && "preview" in config) {
+        var p = config.preview;
+        if (config.basePath && !absoluteURL(p))
+          p = config.basePath + p;
+        preview = document2.createElement("div");
+        preview.className = "pnlm-preview-img";
+        preview.style.backgroundImage = "url('" + sanitizeURLForCss(p) + "')";
+        renderContainer.appendChild(preview);
+      }
+      var title = config.title, author = config.author;
+      if (isPreview) {
+        if ("previewTitle" in config)
+          config.title = config.previewTitle;
+        if ("previewAuthor" in config)
+          config.author = config.previewAuthor;
+      }
+      if (!config.hasOwnProperty("title"))
+        infoDisplay.title.innerHTML = "";
+      if (!config.hasOwnProperty("author"))
+        infoDisplay.author.innerHTML = "";
+      if (!config.hasOwnProperty("title") && !config.hasOwnProperty("author"))
+        infoDisplay.container.style.display = "none";
+      if (config.targetBlank) {
+        aboutMsgLink.rel = "noopener";
+        aboutMsgLink.target = "_blank";
+      }
+      controls.load.innerHTML = "<div><p>" + config.strings.loadButtonLabel + "</p></div>";
+      infoDisplay.load.boxp.innerHTML = config.strings.loadingLabel;
+      for (var key in config) {
+        if (config.hasOwnProperty(key)) {
+          switch (key) {
+            case "title":
+              infoDisplay.title.innerHTML = escapeHTML(config[key]);
+              infoDisplay.container.style.display = "inline";
+              break;
+            case "author":
+              var authorText = escapeHTML(config[key]);
+              if (config.authorURL) {
+                var authorLink = document2.createElement("a");
+                authorLink.href = sanitizeURL(config["authorURL"], true);
+                if (config.targetBlank) {
+                  authorLink.target = "_blank";
+                  authorLink.rel = "noopener";
+                }
+                authorLink.innerHTML = escapeHTML(config[key]);
+                authorText = authorLink.outerHTML;
+              }
+              infoDisplay.author.innerHTML = config.strings.bylineLabel.replace("%s", authorText);
+              infoDisplay.container.style.display = "inline";
+              break;
+            case "hfov":
+              setHfov(Number(config[key]));
+              break;
+            case "autoLoad":
+              if (config[key] === true && renderer === undefined$1) {
+                infoDisplay.load.box.style.display = "inline";
+                controls.load.style.display = "none";
+                init2();
+              }
+              break;
+            case "showZoomCtrl":
+              if (config[key] && config.showControls != false) {
+                controls.zoom.style.display = "block";
+              } else {
+                controls.zoom.style.display = "none";
+              }
+              break;
+            case "showFullscreenCtrl":
+              if (config[key] && config.showControls != false && ("fullscreen" in document2 || "mozFullScreen" in document2 || "webkitIsFullScreen" in document2 || "msFullscreenElement" in document2)) {
+                controls.fullscreen.style.display = "block";
+              } else {
+                controls.fullscreen.style.display = "none";
+              }
+              break;
+            case "hotSpotDebug":
+              if (config[key])
+                hotSpotDebugIndicator.style.display = "block";
+              else
+                hotSpotDebugIndicator.style.display = "none";
+              break;
+            case "showControls":
+              if (!config[key]) {
+                controls.orientation.style.display = "none";
+                controls.zoom.style.display = "none";
+                controls.fullscreen.style.display = "none";
+              }
+              break;
+            case "orientationOnByDefault":
+              if (config[key])
+                startOrientation();
+              break;
+          }
+        }
+      }
+      if (isPreview) {
+        if (title)
+          config.title = title;
+        else
+          delete config.title;
+        if (author)
+          config.author = author;
+        else
+          delete config.author;
+      }
+    }
+    function toggleFullscreen() {
+      if (loaded && !error) {
+        if (!fullscreenActive) {
+          try {
+            if (container.requestFullscreen) {
+              container.requestFullscreen();
+            } else if (container.mozRequestFullScreen) {
+              container.mozRequestFullScreen();
+            } else if (container.msRequestFullscreen) {
+              container.msRequestFullscreen();
+            } else {
+              container.webkitRequestFullScreen();
+            }
+          } catch (event2) {
+          }
+        } else {
+          if (document2.exitFullscreen) {
+            document2.exitFullscreen();
+          } else if (document2.mozCancelFullScreen) {
+            document2.mozCancelFullScreen();
+          } else if (document2.webkitCancelFullScreen) {
+            document2.webkitCancelFullScreen();
+          } else if (document2.msExitFullscreen) {
+            document2.msExitFullscreen();
+          }
+        }
+      }
+    }
+    function onFullScreenChange(resize) {
+      if (document2.fullscreenElement || document2.fullscreen || document2.mozFullScreen || document2.webkitIsFullScreen || document2.msFullscreenElement) {
+        controls.fullscreen.classList.add("pnlm-fullscreen-toggle-button-active");
+        fullscreenActive = true;
+      } else {
+        controls.fullscreen.classList.remove("pnlm-fullscreen-toggle-button-active");
+        fullscreenActive = false;
+      }
+      if (resize !== "resize")
+        fireEvent("fullscreenchange", fullscreenActive);
+      renderer.resize();
+      setHfov(config.hfov);
+      animateInit();
+    }
+    function zoomIn() {
+      if (loaded) {
+        setHfov(config.hfov - 5);
+        animateInit();
+      }
+    }
+    function zoomOut() {
+      if (loaded) {
+        setHfov(config.hfov + 5);
+        animateInit();
+      }
+    }
+    function constrainHfov(hfov) {
+      var minHfov = config.minHfov;
+      if (config.type == "multires" && renderer && !config.multiResMinHfov) {
+        minHfov = Math.min(minHfov, renderer.getCanvas().width / (config.multiRes.cubeResolution / 90 * 0.9));
+      }
+      if (minHfov > config.maxHfov) {
+        console.log("HFOV bounds do not make sense (minHfov > maxHfov).");
+        return config.hfov;
+      }
+      var newHfov = config.hfov;
+      if (hfov < minHfov) {
+        newHfov = minHfov;
+      } else if (hfov > config.maxHfov) {
+        newHfov = config.maxHfov;
+      } else {
+        newHfov = hfov;
+      }
+      if (config.avoidShowingBackground && renderer && !isNaN(config.maxPitch - config.minPitch)) {
+        var canvas = renderer.getCanvas();
+        newHfov = Math.min(newHfov, Math.atan(Math.tan((config.maxPitch - config.minPitch) / 360 * Math.PI) / canvas.height * canvas.width) * 360 / Math.PI);
+      }
+      return newHfov;
+    }
+    function setHfov(hfov) {
+      config.hfov = constrainHfov(hfov);
+      fireEvent("zoomchange", config.hfov);
+    }
+    function stopAnimation() {
+      animatedMove = {};
+      autoRotateSpeed = config.autoRotate ? config.autoRotate : autoRotateSpeed;
+      config.autoRotate = false;
+    }
+    function load() {
+      clearError();
+      loaded = false;
+      clearInteractionMessage();
+      controls.load.style.display = "none";
+      infoDisplay.load.box.style.display = "inline";
+      init2();
+    }
+    function loadScene(sceneId, targetPitch, targetYaw, targetHfov, fadeDone) {
+      if (!loaded)
+        fadeDone = true;
+      loaded = false;
+      animatedMove = {};
+      var fadeImg, workingPitch, workingYaw, workingHfov;
+      if (config.sceneFadeDuration && !fadeDone) {
+        var data = renderer.render(config.pitch * Math.PI / 180, config.yaw * Math.PI / 180, config.hfov * Math.PI / 180, { returnImage: "ImageBitmap" });
+        if (data !== undefined$1) {
+          if (data.then)
+            fadeImg = document2.createElement("canvas");
+          else
+            fadeImg = new Image();
+          fadeImg.className = "pnlm-fade-img";
+          fadeImg.style.transition = "opacity " + config.sceneFadeDuration / 1e3 + "s";
+          fadeImg.style.width = "100%";
+          fadeImg.style.height = "100%";
+          if (data.then) {
+            data.then(function(img) {
+              fadeImg.width = img.width;
+              fadeImg.height = img.height;
+              fadeImg.getContext("2d").drawImage(img, 0, 0);
+              loadScene(sceneId, targetPitch, targetYaw, targetHfov, true);
+            });
+          } else {
+            fadeImg.onload = function() {
+              loadScene(sceneId, targetPitch, targetYaw, targetHfov, true);
+            };
+            fadeImg.src = data;
+          }
+          renderContainer.appendChild(fadeImg);
+          renderer.fadeImg = fadeImg;
+          return;
+        }
+      }
+      if (targetPitch === "same") {
+        workingPitch = config.pitch;
+      } else {
+        workingPitch = targetPitch;
+      }
+      if (targetYaw === "same") {
+        workingYaw = config.yaw;
+      } else if (targetYaw === "sameAzimuth") {
+        workingYaw = config.yaw + (config.northOffset || 0) - (initialConfig.scenes[sceneId].northOffset || 0);
+      } else {
+        workingYaw = targetYaw;
+      }
+      if (targetHfov === "same") {
+        workingHfov = config.hfov;
+      } else {
+        workingHfov = targetHfov;
+      }
+      destroyHotSpots();
+      mergeConfig(sceneId);
+      speed.yaw = speed.pitch = speed.hfov = 0;
+      processOptions();
+      if (workingPitch !== undefined$1) {
+        config.pitch = workingPitch;
+      }
+      if (workingYaw !== undefined$1) {
+        config.yaw = workingYaw;
+      }
+      if (workingHfov !== undefined$1) {
+        config.hfov = workingHfov;
+      }
+      fireEvent("scenechange", sceneId);
+      load();
+    }
+    function stopOrientation() {
+      window2.removeEventListener("deviceorientation", orientationListener);
+      controls.orientation.classList.remove("pnlm-orientation-button-active");
+      orientation = false;
+    }
+    function startOrientation() {
+      if (!orientationSupport)
+        return;
+      if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
+        DeviceOrientationEvent.requestPermission().then(function(response) {
+          if (response == "granted") {
+            orientation = 1;
+            window2.addEventListener("deviceorientation", orientationListener);
+            controls.orientation.classList.add("pnlm-orientation-button-active");
+          }
+        });
+      } else {
+        orientation = 1;
+        window2.addEventListener("deviceorientation", orientationListener);
+        controls.orientation.classList.add("pnlm-orientation-button-active");
+      }
+    }
+    function escapeHTML(s) {
+      if (!initialConfig.escapeHTML)
+        return String(s).split("\n").join("<br>");
+      return String(s).split(/&/g).join("&amp;").split('"').join("&quot;").split("'").join("&#39;").split("<").join("&lt;").split(">").join("&gt;").split("/").join("&#x2f;").split("\n").join("<br>");
+    }
+    function sanitizeURL(url, href) {
+      try {
+        var decoded_url = decodeURIComponent(unescape(url)).replace(/[^\w:]/g, "").toLowerCase();
+      } catch (e) {
+        return "about:blank";
+      }
+      if (decoded_url.indexOf("javascript:") === 0 || decoded_url.indexOf("vbscript:") === 0) {
+        console.log("Script URL removed.");
+        return "about:blank";
+      }
+      if (href && decoded_url.indexOf("data:") === 0) {
+        console.log("Data URI removed from link.");
+        return "about:blank";
+      }
+      return url;
+    }
+    function unescape(html) {
+      return html.replace(/&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/ig, function(_, n) {
+        n = n.toLowerCase();
+        if (n === "colon")
+          return ":";
+        if (n.charAt(0) === "#") {
+          return n.charAt(1) === "x" ? String.fromCharCode(parseInt(n.substring(2), 16)) : String.fromCharCode(+n.substring(1));
+        }
+        return "";
+      });
+    }
+    function sanitizeURLForCss(url) {
+      return sanitizeURL(url).replace(/"/g, "%22").replace(/'/g, "%27");
+    }
+    this.isLoaded = function() {
+      return Boolean(loaded);
+    };
+    this.getPitch = function() {
+      return config.pitch;
+    };
+    this.setPitch = function(pitch, animated, callback, callbackArgs) {
+      latestInteraction = Date.now();
+      if (Math.abs(pitch - config.pitch) <= eps) {
+        if (typeof callback == "function")
+          callback(callbackArgs);
+        return this;
+      }
+      animated = animated == undefined$1 ? 1e3 : Number(animated);
+      if (animated) {
+        animatedMove.pitch = {
+          "startTime": Date.now(),
+          "startPosition": config.pitch,
+          "endPosition": pitch,
+          "duration": animated
+        };
+        if (typeof callback == "function")
+          setTimeout(function() {
+            callback(callbackArgs);
+          }, animated);
+      } else {
+        config.pitch = pitch;
+      }
+      animateInit();
+      return this;
+    };
+    this.getPitchBounds = function() {
+      return [config.minPitch, config.maxPitch];
+    };
+    this.setPitchBounds = function(bounds) {
+      config.minPitch = Math.max(-90, Math.min(bounds[0], 90));
+      config.maxPitch = Math.max(-90, Math.min(bounds[1], 90));
+      return this;
+    };
+    this.getYaw = function() {
+      return (config.yaw + 540) % 360 - 180;
+    };
+    this.setYaw = function(yaw, animated, callback, callbackArgs) {
+      latestInteraction = Date.now();
+      if (Math.abs(yaw - config.yaw) <= eps) {
+        if (typeof callback == "function")
+          callback(callbackArgs);
+        return this;
+      }
+      animated = animated == undefined$1 ? 1e3 : Number(animated);
+      yaw = (yaw + 180) % 360 - 180;
+      if (animated) {
+        if (config.yaw - yaw > 180)
+          yaw += 360;
+        else if (yaw - config.yaw > 180)
+          yaw -= 360;
+        animatedMove.yaw = {
+          "startTime": Date.now(),
+          "startPosition": config.yaw,
+          "endPosition": yaw,
+          "duration": animated
+        };
+        if (typeof callback == "function")
+          setTimeout(function() {
+            callback(callbackArgs);
+          }, animated);
+      } else {
+        config.yaw = yaw;
+      }
+      animateInit();
+      return this;
+    };
+    this.getYawBounds = function() {
+      return [config.minYaw, config.maxYaw];
+    };
+    this.setYawBounds = function(bounds) {
+      config.minYaw = Math.max(-360, Math.min(bounds[0], 360));
+      config.maxYaw = Math.max(-360, Math.min(bounds[1], 360));
+      return this;
+    };
+    this.getHfov = function() {
+      return config.hfov;
+    };
+    this.setHfov = function(hfov, animated, callback, callbackArgs) {
+      latestInteraction = Date.now();
+      if (Math.abs(hfov - config.hfov) <= eps) {
+        if (typeof callback == "function")
+          callback(callbackArgs);
+        return this;
+      }
+      animated = animated == undefined$1 ? 1e3 : Number(animated);
+      if (animated) {
+        animatedMove.hfov = {
+          "startTime": Date.now(),
+          "startPosition": config.hfov,
+          "endPosition": constrainHfov(hfov),
+          "duration": animated
+        };
+        if (typeof callback == "function")
+          setTimeout(function() {
+            callback(callbackArgs);
+          }, animated);
+      } else {
+        setHfov(hfov);
+      }
+      animateInit();
+      return this;
+    };
+    this.getHfovBounds = function() {
+      return [config.minHfov, config.maxHfov];
+    };
+    this.setHfovBounds = function(bounds) {
+      config.minHfov = Math.max(0, bounds[0]);
+      config.maxHfov = Math.max(0, bounds[1]);
+      return this;
+    };
+    this.lookAt = function(pitch, yaw, hfov, animated, callback, callbackArgs) {
+      animated = animated == undefined$1 ? 1e3 : Number(animated);
+      if (pitch !== undefined$1 && Math.abs(pitch - config.pitch) > eps) {
+        this.setPitch(pitch, animated, callback, callbackArgs);
+        callback = undefined$1;
+      }
+      if (yaw !== undefined$1 && Math.abs(yaw - config.yaw) > eps) {
+        this.setYaw(yaw, animated, callback, callbackArgs);
+        callback = undefined$1;
+      }
+      if (hfov !== undefined$1 && Math.abs(hfov - config.hfov) > eps) {
+        this.setHfov(hfov, animated, callback, callbackArgs);
+        callback = undefined$1;
+      }
+      if (typeof callback == "function")
+        callback(callbackArgs);
+      return this;
+    };
+    this.getNorthOffset = function() {
+      return config.northOffset;
+    };
+    this.setNorthOffset = function(heading) {
+      config.northOffset = Math.min(360, Math.max(0, heading));
+      animateInit();
+      return this;
+    };
+    this.getHorizonRoll = function() {
+      return config.horizonRoll;
+    };
+    this.setHorizonRoll = function(roll) {
+      config.horizonRoll = Math.min(90, Math.max(-90, roll));
+      renderer.setPose(config.horizonPitch * Math.PI / 180, config.horizonRoll * Math.PI / 180);
+      animateInit();
+      return this;
+    };
+    this.getHorizonPitch = function() {
+      return config.horizonPitch;
+    };
+    this.setHorizonPitch = function(pitch) {
+      config.horizonPitch = Math.min(90, Math.max(-90, pitch));
+      renderer.setPose(config.horizonPitch * Math.PI / 180, config.horizonRoll * Math.PI / 180);
+      animateInit();
+      return this;
+    };
+    this.startAutoRotate = function(speed2, pitch, hfov, inactivityDelay) {
+      speed2 = speed2 || autoRotateSpeed || 1;
+      pitch = pitch === undefined$1 ? origPitch : pitch;
+      hfov = hfov === undefined$1 ? origHfov : hfov;
+      config.autoRotate = speed2;
+      if (inactivityDelay !== undefined$1)
+        config.autoRotateInactivityDelay = inactivityDelay;
+      _this.lookAt(pitch, undefined$1, hfov, 3e3);
+      animateInit();
+      return this;
+    };
+    this.stopAutoRotate = function() {
+      autoRotateSpeed = config.autoRotate ? config.autoRotate : autoRotateSpeed;
+      config.autoRotate = false;
+      config.autoRotateInactivityDelay = -1;
+      return this;
+    };
+    this.stopMovement = function() {
+      stopAnimation();
+      speed = { "yaw": 0, "pitch": 0, "hfov": 0 };
+    };
+    this.getRenderer = function() {
+      return renderer;
+    };
+    this.setUpdate = function(bool) {
+      update2 = bool === true;
+      if (renderer === undefined$1)
+        onImageLoad();
+      else
+        animateInit();
+      return this;
+    };
+    this.mouseEventToCoords = function(event2) {
+      return mouseEventToCoords(event2);
+    };
+    this.loadScene = function(sceneId, pitch, yaw, hfov) {
+      if (loaded !== false)
+        loadScene(sceneId, pitch, yaw, hfov);
+      return this;
+    };
+    this.getScene = function() {
+      return config.scene;
+    };
+    this.addScene = function(sceneId, config2) {
+      initialConfig.scenes[sceneId] = config2;
+      return this;
+    };
+    this.removeScene = function(sceneId) {
+      if (config.scene === sceneId || !initialConfig.scenes.hasOwnProperty(sceneId))
+        return false;
+      delete initialConfig.scenes[sceneId];
+      return true;
+    };
+    this.toggleFullscreen = function() {
+      toggleFullscreen();
+      return this;
+    };
+    this.getConfig = function() {
+      return config;
+    };
+    this.getContainer = function() {
+      return container;
+    };
+    this.addHotSpot = function(hs, sceneId) {
+      if (sceneId === undefined$1 && config.scene === undefined$1) {
+        config.hotSpots.push(hs);
+      } else {
+        var id = sceneId !== undefined$1 ? sceneId : config.scene;
+        if (initialConfig.scenes.hasOwnProperty(id)) {
+          if (!initialConfig.scenes[id].hasOwnProperty("hotSpots")) {
+            initialConfig.scenes[id].hotSpots = [];
+            if (id == config.scene)
+              config.hotSpots = initialConfig.scenes[id].hotSpots;
+          }
+          initialConfig.scenes[id].hotSpots.push(hs);
+        } else {
+          throw "Invalid scene ID!";
+        }
+      }
+      if (sceneId === undefined$1 || config.scene == sceneId) {
+        createHotSpot(hs);
+        if (loaded)
+          renderHotSpot(hs);
+      }
+      return this;
+    };
+    this.removeHotSpot = function(hotSpotId, sceneId) {
+      if (sceneId === undefined$1 || config.scene == sceneId) {
+        if (!config.hotSpots)
+          return false;
+        for (var i2 = 0; i2 < config.hotSpots.length; i2++) {
+          if (config.hotSpots[i2].hasOwnProperty("id") && config.hotSpots[i2].id === hotSpotId) {
+            var current = config.hotSpots[i2].div;
+            while (current.parentNode != uiContainer)
+              current = current.parentNode;
+            uiContainer.removeChild(current);
+            delete config.hotSpots[i2].div;
+            config.hotSpots.splice(i2, 1);
+            return true;
+          }
+        }
+      } else {
+        if (initialConfig.scenes.hasOwnProperty(sceneId)) {
+          if (!initialConfig.scenes[sceneId].hasOwnProperty("hotSpots"))
+            return false;
+          for (var j = 0; j < initialConfig.scenes[sceneId].hotSpots.length; j++) {
+            if (initialConfig.scenes[sceneId].hotSpots[j].hasOwnProperty("id") && initialConfig.scenes[sceneId].hotSpots[j].id === hotSpotId) {
+              initialConfig.scenes[sceneId].hotSpots.splice(j, 1);
+              return true;
+            }
+          }
+        } else {
+          return false;
+        }
+      }
+    };
+    this.resize = function() {
+      if (renderer)
+        onDocumentResize();
+    };
+    this.isOrientationSupported = function() {
+      return orientationSupport || false;
+    };
+    this.stopOrientation = function() {
+      stopOrientation();
+    };
+    this.startOrientation = function() {
+      startOrientation();
+    };
+    this.isOrientationActive = function() {
+      return Boolean(orientation);
+    };
+    this.on = function(type2, listener) {
+      externalEventListeners[type2] = externalEventListeners[type2] || [];
+      externalEventListeners[type2].push(listener);
+      return this;
+    };
+    this.off = function(type2, listener) {
+      if (!type2) {
+        externalEventListeners = {};
+        return this;
+      }
+      if (listener) {
+        var i2 = externalEventListeners[type2].indexOf(listener);
+        if (i2 >= 0) {
+          externalEventListeners[type2].splice(i2, 1);
+        }
+        if (externalEventListeners[type2].length == 0) {
+          delete externalEventListeners[type2];
+        }
+      } else {
+        delete externalEventListeners[type2];
+      }
+      return this;
+    };
+    function fireEvent(type2) {
+      if (type2 in externalEventListeners) {
+        for (var i2 = externalEventListeners[type2].length; i2 > 0; i2--) {
+          externalEventListeners[type2][externalEventListeners[type2].length - i2].apply(null, [].slice.call(arguments, 1));
+        }
+      }
+    }
+    this.destroy = function() {
+      destroyed = true;
+      clearTimeout(autoRotateStart);
+      if (renderer)
+        renderer.destroy();
+      if (listenersAdded) {
+        document2.removeEventListener("mousemove", onDocumentMouseMove, false);
+        document2.removeEventListener("mouseup", onDocumentMouseUp, false);
+        container.removeEventListener("mozfullscreenchange", onFullScreenChange, false);
+        container.removeEventListener("webkitfullscreenchange", onFullScreenChange, false);
+        container.removeEventListener("msfullscreenchange", onFullScreenChange, false);
+        container.removeEventListener("fullscreenchange", onFullScreenChange, false);
+        if (resizeObserver) {
+          resizeObserver.disconnect();
+        } else {
+          window2.removeEventListener("resize", onDocumentResize, false);
+          window2.removeEventListener("orientationchange", onDocumentResize, false);
+        }
+        container.removeEventListener("keydown", onDocumentKeyPress, false);
+        container.removeEventListener("keyup", onDocumentKeyUp, false);
+        container.removeEventListener("blur", clearKeys, false);
+        document2.removeEventListener("mouseleave", onDocumentMouseUp, false);
+      }
+      container.innerHTML = "";
+      container.classList.remove("pnlm-container");
+    };
+  }
+  return {
+    viewer: function(container, config) {
+      return new Viewer2(container, config);
+    }
+  };
+}(window, document);
+window.libpannellum = function(window2, document2, undefined$1) {
+  function Renderer(container, context) {
+    var canvas;
+    if (container) {
+      canvas = document2.createElement("canvas");
+      canvas.style.width = canvas.style.height = "100%";
+      container.appendChild(canvas);
+    }
+    var program, gl, vs, fs;
+    var previewProgram, previewVs, previewFs;
+    var fallbackImgSize;
+    var world;
+    var vtmps;
+    var pose;
+    var image, imageType, dynamic;
+    var texCoordBuffer, cubeVertBuf, cubeVertTexCoordBuf, cubeVertIndBuf;
+    var globalParams;
+    var sides = ["f", "b", "u", "d", "l", "r"];
+    var fallbackSides = ["f", "r", "b", "l", "u", "d"];
+    if (context)
+      gl = context;
+    this.init = function(_image, _imageType, _dynamic, haov, vaov, voffset, callback, params) {
+      if (_imageType === undefined$1)
+        _imageType = "equirectangular";
+      if (_imageType != "equirectangular" && _imageType != "cubemap" && _imageType != "multires") {
+        console.log("Error: invalid image type specified!");
+        throw { type: "config error" };
+      }
+      imageType = _imageType;
+      image = _image;
+      dynamic = _dynamic;
+      globalParams = params || {};
+      if (program) {
+        if (vs) {
+          gl.detachShader(program, vs);
+          gl.deleteShader(vs);
+        }
+        if (fs) {
+          gl.detachShader(program, fs);
+          gl.deleteShader(fs);
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+        if (program.texture)
+          gl.deleteTexture(program.texture);
+        if (program.nodeCache)
+          for (var i2 = 0; i2 < program.nodeCache.length; i2++)
+            gl.deleteTexture(program.nodeCache[i2].texture);
+        if (program.textureLoads) {
+          pendingTextureRequests = [];
+          while (program.textureLoads.length > 0)
+            program.textureLoads.shift()(false);
+        }
+        gl.deleteProgram(program);
+        program = undefined$1;
+      }
+      if (previewProgram) {
+        if (previewVs) {
+          gl.detachShader(previewProgram, previewVs);
+          gl.deleteShader(previewVs);
+        }
+        if (previewFs) {
+          gl.detachShader(previewProgram, previewFs);
+          gl.deleteShader(previewFs);
+        }
+        gl.deleteProgram(previewProgram);
+        previewProgram = undefined$1;
+      }
+      pose = undefined$1;
+      var s;
+      var faceMissing = false;
+      var cubeImgWidth;
+      if (imageType == "cubemap") {
+        for (s = 0; s < 6; s++) {
+          if (image[s].width > 0) {
+            if (cubeImgWidth === undefined$1)
+              cubeImgWidth = image[s].width;
+            if (cubeImgWidth != image[s].width)
+              console.log("Cube faces have inconsistent widths: " + cubeImgWidth + " vs. " + image[s].width);
+          } else
+            faceMissing = true;
+        }
+      }
+      function fillMissingFaces(imgSize) {
+        if (faceMissing) {
+          var nbytes = imgSize * imgSize * 4;
+          var imageArray = new Uint8ClampedArray(nbytes);
+          var rgb = params.backgroundColor ? params.backgroundColor : [0, 0, 0];
+          rgb[0] *= 255;
+          rgb[1] *= 255;
+          rgb[2] *= 255;
+          for (var i3 = 0; i3 < nbytes; i3++) {
+            imageArray[i3++] = rgb[0];
+            imageArray[i3++] = rgb[1];
+            imageArray[i3++] = rgb[2];
+          }
+          var backgroundSquare = new ImageData(imageArray, imgSize, imgSize);
+          for (s = 0; s < 6; s++) {
+            if (image[s].width == 0)
+              image[s] = backgroundSquare;
+          }
+        }
+      }
+      if (!(imageType == "cubemap" && (cubeImgWidth & cubeImgWidth - 1) !== 0 && (navigator.userAgent.toLowerCase().match(/(iphone|ipod|ipad).* os 8_/) || navigator.userAgent.toLowerCase().match(/(iphone|ipod|ipad).* os 9_/) || navigator.userAgent.toLowerCase().match(/(iphone|ipod|ipad).* os 10_/) || navigator.userAgent.match(/Trident.*rv[ :]*11\./)))) {
+        if (!gl)
+          gl = canvas.getContext("experimental-webgl", { alpha: false, depth: false });
+        if (gl && gl.getError() == 1286)
+          handleWebGLError1286();
+      }
+      if (!gl && (imageType == "multires" && image.hasOwnProperty("fallbackPath") || imageType == "cubemap") && ("WebkitAppearance" in document2.documentElement.style || navigator.userAgent.match(/Trident.*rv[ :]*11\./) || navigator.appVersion.indexOf("MSIE 10") !== -1)) {
+        if (world) {
+          container.removeChild(world);
+        }
+        world = document2.createElement("div");
+        world.className = "pnlm-world";
+        var path;
+        if (image.basePath) {
+          path = image.basePath + image.fallbackPath;
+        } else {
+          path = image.fallbackPath;
+        }
+        var loaded = 0;
+        var onLoad = function() {
+          var faceCanvas = document2.createElement("canvas");
+          faceCanvas.className = "pnlm-face pnlm-" + fallbackSides[this.side] + "face";
+          world.appendChild(faceCanvas);
+          var faceContext = faceCanvas.getContext("2d");
+          faceCanvas.style.width = this.width + 4 + "px";
+          faceCanvas.style.height = this.height + 4 + "px";
+          faceCanvas.width = this.width + 4;
+          faceCanvas.height = this.height + 4;
+          faceContext.drawImage(this, 2, 2);
+          var imgData = faceContext.getImageData(0, 0, faceCanvas.width, faceCanvas.height);
+          var data = imgData.data;
+          var i3;
+          var j;
+          for (i3 = 2; i3 < faceCanvas.width - 2; i3++) {
+            for (j = 0; j < 4; j++) {
+              data[(i3 + faceCanvas.width) * 4 + j] = data[(i3 + faceCanvas.width * 2) * 4 + j];
+              data[(i3 + faceCanvas.width * (faceCanvas.height - 2)) * 4 + j] = data[(i3 + faceCanvas.width * (faceCanvas.height - 3)) * 4 + j];
+            }
+          }
+          for (i3 = 2; i3 < faceCanvas.height - 2; i3++) {
+            for (j = 0; j < 4; j++) {
+              data[(i3 * faceCanvas.width + 1) * 4 + j] = data[(i3 * faceCanvas.width + 2) * 4 + j];
+              data[((i3 + 1) * faceCanvas.width - 2) * 4 + j] = data[((i3 + 1) * faceCanvas.width - 3) * 4 + j];
+            }
+          }
+          for (j = 0; j < 4; j++) {
+            data[(faceCanvas.width + 1) * 4 + j] = data[(faceCanvas.width * 2 + 2) * 4 + j];
+            data[(faceCanvas.width * 2 - 2) * 4 + j] = data[(faceCanvas.width * 3 - 3) * 4 + j];
+            data[(faceCanvas.width * (faceCanvas.height - 2) + 1) * 4 + j] = data[(faceCanvas.width * (faceCanvas.height - 3) + 2) * 4 + j];
+            data[(faceCanvas.width * (faceCanvas.height - 1) - 2) * 4 + j] = data[(faceCanvas.width * (faceCanvas.height - 2) - 3) * 4 + j];
+          }
+          for (i3 = 1; i3 < faceCanvas.width - 1; i3++) {
+            for (j = 0; j < 4; j++) {
+              data[i3 * 4 + j] = data[(i3 + faceCanvas.width) * 4 + j];
+              data[(i3 + faceCanvas.width * (faceCanvas.height - 1)) * 4 + j] = data[(i3 + faceCanvas.width * (faceCanvas.height - 2)) * 4 + j];
+            }
+          }
+          for (i3 = 1; i3 < faceCanvas.height - 1; i3++) {
+            for (j = 0; j < 4; j++) {
+              data[i3 * faceCanvas.width * 4 + j] = data[(i3 * faceCanvas.width + 1) * 4 + j];
+              data[((i3 + 1) * faceCanvas.width - 1) * 4 + j] = data[((i3 + 1) * faceCanvas.width - 2) * 4 + j];
+            }
+          }
+          for (j = 0; j < 4; j++) {
+            data[j] = data[(faceCanvas.width + 1) * 4 + j];
+            data[(faceCanvas.width - 1) * 4 + j] = data[(faceCanvas.width * 2 - 2) * 4 + j];
+            data[faceCanvas.width * (faceCanvas.height - 1) * 4 + j] = data[(faceCanvas.width * (faceCanvas.height - 2) + 1) * 4 + j];
+            data[(faceCanvas.width * faceCanvas.height - 1) * 4 + j] = data[(faceCanvas.width * (faceCanvas.height - 1) - 2) * 4 + j];
+          }
+          faceContext.putImageData(imgData, 0, 0);
+          incLoaded.call(this);
+        };
+        var incLoaded = function() {
+          if (this.width > 0) {
+            if (fallbackImgSize === undefined$1)
+              fallbackImgSize = this.width;
+            if (fallbackImgSize != this.width)
+              console.log("Fallback faces have inconsistent widths: " + fallbackImgSize + " vs. " + this.width);
+          } else
+            faceMissing = true;
+          loaded++;
+          if (loaded == 6) {
+            fallbackImgSize = this.width;
+            container.appendChild(world);
+            callback();
+          }
+        };
+        faceMissing = false;
+        for (s = 0; s < 6; s++) {
+          var faceImg = new Image();
+          faceImg.crossOrigin = globalParams.crossOrigin ? globalParams.crossOrigin : "anonymous";
+          faceImg.side = s;
+          faceImg.onload = onLoad;
+          faceImg.onerror = incLoaded;
+          if (imageType == "multires") {
+            faceImg.src = path.replace("%s", fallbackSides[s]) + (image.extension ? "." + image.extension : "");
+          } else {
+            faceImg.src = image[s].src;
+          }
+        }
+        fillMissingFaces(fallbackImgSize);
+        return;
+      } else if (!gl) {
+        console.log("Error: no WebGL support detected!");
+        throw { type: "no webgl" };
+      }
+      if (imageType == "cubemap")
+        fillMissingFaces(cubeImgWidth);
+      if (image.basePath) {
+        image.fullpath = image.basePath + image.path;
+      } else {
+        image.fullpath = image.path;
+      }
+      image.invTileResolution = 1 / image.tileResolution;
+      var vertices = createCube();
+      vtmps = [];
+      for (s = 0; s < 6; s++) {
+        vtmps[s] = vertices.slice(s * 12, s * 12 + 12);
+        vertices = createCube();
+      }
+      var maxWidth = 0;
+      if (imageType == "equirectangular") {
+        maxWidth = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+        if (Math.max(image.width / 2, image.height) > maxWidth) {
+          console.log("Error: The image is too big; it's " + image.width + "px wide, but this device's maximum supported size is " + maxWidth * 2 + "px.");
+          throw { type: "webgl size error", width: image.width, maxWidth: maxWidth * 2 };
+        }
+      } else if (imageType == "cubemap") {
+        if (cubeImgWidth > gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE)) {
+          console.log("Error: The image is too big; it's " + cubeImgWidth + "px wide, but this device's maximum supported size is " + maxWidth + "px.");
+          throw { type: "webgl size error", width: cubeImgWidth, maxWidth };
+        }
+      }
+      if (params !== undefined$1) {
+        var horizonPitch = isNaN(params.horizonPitch) ? 0 : Number(params.horizonPitch), horizonRoll = isNaN(params.horizonRoll) ? 0 : Number(params.horizonRoll);
+        if (horizonPitch != 0 || horizonRoll != 0)
+          pose = [horizonPitch, horizonRoll];
+      }
+      var glBindType = gl.TEXTURE_2D;
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+      if (gl.getShaderPrecisionFormat) {
+        var precision = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
+        if (precision && precision.precision < 1) {
+          fragEquiCubeBase = fragEquiCubeBase.replace("highp", "mediump");
+        }
+      }
+      vs = gl.createShader(gl.VERTEX_SHADER);
+      var vertexSrc2 = v2;
+      if (imageType == "multires") {
+        vertexSrc2 = vMulti;
+      }
+      gl.shaderSource(vs, vertexSrc2);
+      gl.compileShader(vs);
+      fs = gl.createShader(gl.FRAGMENT_SHADER);
+      var fragmentSrc2 = fragEquirectangular;
+      if (imageType == "cubemap") {
+        glBindType = gl.TEXTURE_CUBE_MAP;
+        fragmentSrc2 = fragCube;
+      } else if (imageType == "multires") {
+        fragmentSrc2 = fragMulti;
+      }
+      gl.shaderSource(fs, fragmentSrc2);
+      gl.compileShader(fs);
+      program = gl.createProgram();
+      gl.attachShader(program, vs);
+      gl.attachShader(program, fs);
+      gl.linkProgram(program);
+      if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS))
+        console.log(gl.getShaderInfoLog(vs));
+      if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS))
+        console.log(gl.getShaderInfoLog(fs));
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS))
+        console.log(gl.getProgramInfoLog(program));
+      gl.useProgram(program);
+      program.drawInProgress = false;
+      if (params.backgroundColor !== null) {
+        var color = params.backgroundColor ? params.backgroundColor : [0, 0, 0];
+        gl.clearColor(color[0], color[1], color[2], 1);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+      }
+      program.texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
+      gl.enableVertexAttribArray(program.texCoordLocation);
+      if (imageType != "multires") {
+        if (!texCoordBuffer)
+          texCoordBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, 1, 1, 1, 1, -1, -1, 1, 1, -1, -1, -1]), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(program.texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+        program.aspectRatio = gl.getUniformLocation(program, "u_aspectRatio");
+        gl.uniform1f(program.aspectRatio, gl.drawingBufferWidth / gl.drawingBufferHeight);
+        program.psi = gl.getUniformLocation(program, "u_psi");
+        program.theta = gl.getUniformLocation(program, "u_theta");
+        program.f = gl.getUniformLocation(program, "u_f");
+        program.h = gl.getUniformLocation(program, "u_h");
+        program.v = gl.getUniformLocation(program, "u_v");
+        program.vo = gl.getUniformLocation(program, "u_vo");
+        program.rot = gl.getUniformLocation(program, "u_rot");
+        gl.uniform1f(program.h, haov / (Math.PI * 2));
+        gl.uniform1f(program.v, vaov / Math.PI);
+        gl.uniform1f(program.vo, voffset / Math.PI * 2);
+        if (imageType == "equirectangular") {
+          program.backgroundColor = gl.getUniformLocation(program, "u_backgroundColor");
+          gl.uniform4fv(program.backgroundColor, color.concat([1]));
+        }
+        program.texture = gl.createTexture();
+        gl.bindTexture(glBindType, program.texture);
+        if (imageType == "cubemap") {
+          gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image[1]);
+          gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image[3]);
+          gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image[4]);
+          gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image[5]);
+          gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image[0]);
+          gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image[2]);
+        } else {
+          if (image.width <= maxWidth) {
+            gl.uniform1i(gl.getUniformLocation(program, "u_splitImage"), 0);
+            gl.texImage2D(glBindType, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+          } else {
+            gl.uniform1i(gl.getUniformLocation(program, "u_splitImage"), 1);
+            var cropCanvas = document2.createElement("canvas");
+            cropCanvas.width = image.width / 2;
+            cropCanvas.height = image.height;
+            var cropContext = cropCanvas.getContext("2d");
+            cropContext.drawImage(image, 0, 0);
+            var cropImage = cropContext.getImageData(0, 0, image.width / 2, image.height);
+            gl.texImage2D(glBindType, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, cropImage);
+            program.texture2 = gl.createTexture();
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(glBindType, program.texture2);
+            gl.uniform1i(gl.getUniformLocation(program, "u_image1"), 1);
+            cropContext.drawImage(image, -image.width / 2, 0);
+            cropImage = cropContext.getImageData(0, 0, image.width / 2, image.height);
+            gl.texImage2D(glBindType, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, cropImage);
+            gl.texParameteri(glBindType, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(glBindType, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(glBindType, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(glBindType, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.activeTexture(gl.TEXTURE0);
+          }
+        }
+        if (imageType != "cubemap" && image.width <= maxWidth && haov == 2 * Math.PI && (image.width & image.width - 1) == 0)
+          gl.texParameteri(glBindType, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        else
+          gl.texParameteri(glBindType, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(glBindType, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(glBindType, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(glBindType, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      } else {
+        program.vertPosLocation = gl.getAttribLocation(program, "a_vertCoord");
+        gl.enableVertexAttribArray(program.vertPosLocation);
+        if (!cubeVertBuf)
+          cubeVertBuf = gl.createBuffer();
+        if (!cubeVertTexCoordBuf)
+          cubeVertTexCoordBuf = gl.createBuffer();
+        if (!cubeVertIndBuf)
+          cubeVertIndBuf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertTexCoordBuf);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(program.texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertIndBuf);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0, 1, 2, 0, 2, 3]), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertBuf);
+        gl.vertexAttribPointer(program.vertPosLocation, 3, gl.FLOAT, false, 0, 0);
+        program.perspUniform = gl.getUniformLocation(program, "u_perspMatrix");
+        program.cubeUniform = gl.getUniformLocation(program, "u_cubeMatrix");
+        program.level = -1;
+        program.currentNodes = [];
+        program.nodeCache = [];
+        program.nodeCacheTimestamp = 0;
+        program.textureLoads = [];
+        if (image.shtHash || image.equirectangularThumbnail) {
+          previewVs = gl.createShader(gl.VERTEX_SHADER);
+          gl.shaderSource(previewVs, v2);
+          gl.compileShader(previewVs);
+          previewFs = gl.createShader(gl.FRAGMENT_SHADER);
+          gl.shaderSource(previewFs, fragEquirectangular);
+          gl.compileShader(previewFs);
+          previewProgram = gl.createProgram();
+          gl.attachShader(previewProgram, previewVs);
+          gl.attachShader(previewProgram, previewFs);
+          gl.linkProgram(previewProgram);
+          if (!gl.getShaderParameter(previewVs, gl.COMPILE_STATUS))
+            console.log(gl.getShaderInfoLog(previewVs));
+          if (!gl.getShaderParameter(previewFs, gl.COMPILE_STATUS))
+            console.log(gl.getShaderInfoLog(previewFs));
+          if (!gl.getProgramParameter(previewProgram, gl.LINK_STATUS))
+            console.log(gl.getProgramInfoLog(previewProgram));
+          gl.useProgram(previewProgram);
+          previewProgram.texCoordLocation = gl.getAttribLocation(previewProgram, "a_texCoord");
+          gl.enableVertexAttribArray(previewProgram.texCoordLocation);
+          if (!texCoordBuffer)
+            texCoordBuffer = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, 1, 1, 1, 1, -1, -1, 1, 1, -1, -1, -1]), gl.STATIC_DRAW);
+          gl.vertexAttribPointer(previewProgram.texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+          previewProgram.aspectRatio = gl.getUniformLocation(previewProgram, "u_aspectRatio");
+          gl.uniform1f(previewProgram.aspectRatio, gl.drawingBufferWidth / gl.drawingBufferHeight);
+          previewProgram.psi = gl.getUniformLocation(previewProgram, "u_psi");
+          previewProgram.theta = gl.getUniformLocation(previewProgram, "u_theta");
+          previewProgram.f = gl.getUniformLocation(previewProgram, "u_f");
+          previewProgram.h = gl.getUniformLocation(previewProgram, "u_h");
+          previewProgram.v = gl.getUniformLocation(previewProgram, "u_v");
+          previewProgram.vo = gl.getUniformLocation(previewProgram, "u_vo");
+          previewProgram.rot = gl.getUniformLocation(previewProgram, "u_rot");
+          gl.uniform1f(previewProgram.h, 1);
+          previewProgram.texture = gl.createTexture();
+          gl.bindTexture(glBindType, previewProgram.texture);
+          var previewImage, vext, voff;
+          var uploadPreview = function() {
+            gl.useProgram(previewProgram);
+            gl.uniform1i(gl.getUniformLocation(previewProgram, "u_splitImage"), 0);
+            gl.texImage2D(glBindType, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, previewImage);
+            gl.texParameteri(glBindType, gl.TEXTURE_WRAP_S, gl.REPEAT);
+            gl.texParameteri(glBindType, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(glBindType, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(glBindType, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.uniform1f(previewProgram.v, vext);
+            gl.uniform1f(previewProgram.vo, voff);
+            gl.useProgram(program);
+          };
+          if (image.shtHash) {
+            previewImage = shtDecodeImage(image.shtHash);
+            vext = (2 + 1 / 31) / 2;
+            voff = 1 - (2 + 1 / 31) / 2;
+            uploadPreview();
+          }
+          if (image.equirectangularThumbnail) {
+            if (typeof image.equirectangularThumbnail === "string") {
+              if (image.equirectangularThumbnail.slice(0, 5) == "data:") {
+                previewImage = new Image();
+                previewImage.onload = function() {
+                  vext = 1;
+                  voff = 0;
+                  uploadPreview();
+                };
+                previewImage.src = image.equirectangularThumbnail;
+              } else {
+                console.log("Error: thumbnail string is not a data URI!");
+                throw { type: "config error" };
+              }
+            } else {
+              previewImage = image.equirectangularThumbnail;
+              vext = 1;
+              voff = 0;
+              uploadPreview();
+            }
+          }
+          gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertBuf);
+          gl.vertexAttribPointer(program.vertPosLocation, 3, gl.FLOAT, false, 0, 0);
+          gl.useProgram(program);
+        }
+      }
+      var err = gl.getError();
+      if (err !== 0) {
+        console.log("Error: Something went wrong with WebGL!", err);
+        throw { type: "webgl error" };
+      }
+      callback();
+    };
+    this.destroy = function() {
+      if (container !== undefined$1) {
+        if (canvas !== undefined$1 && container.contains(canvas)) {
+          container.removeChild(canvas);
+        }
+        if (world !== undefined$1 && container.contains(world)) {
+          container.removeChild(world);
+        }
+      }
+      if (gl) {
+        var extension = gl.getExtension("WEBGL_lose_context");
+        if (extension)
+          extension.loseContext();
+      }
+    };
+    this.resize = function() {
+      var pixelRatio2 = window2.devicePixelRatio || 1;
+      canvas.width = canvas.clientWidth * pixelRatio2;
+      canvas.height = canvas.clientHeight * pixelRatio2;
+      if (gl) {
+        if (gl.getError() == 1286)
+          handleWebGLError1286();
+        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+        if (imageType != "multires") {
+          gl.uniform1f(program.aspectRatio, canvas.clientWidth / canvas.clientHeight);
+        } else if (image.shtHash) {
+          gl.useProgram(previewProgram);
+          gl.uniform1f(previewProgram.aspectRatio, canvas.clientWidth / canvas.clientHeight);
+          gl.useProgram(program);
+        }
+      }
+    };
+    if (canvas)
+      this.resize();
+    this.setPose = function(horizonPitch, horizonRoll) {
+      horizonPitch = isNaN(horizonPitch) ? 0 : Number(horizonPitch);
+      horizonRoll = isNaN(horizonRoll) ? 0 : Number(horizonRoll);
+      if (horizonPitch == 0 && horizonRoll == 0)
+        pose = undefined$1;
+      else
+        pose = [horizonPitch, horizonRoll];
+    };
+    this.render = function(pitch, yaw, hfov, params) {
+      var focal, i2, s, roll = 0;
+      if (params === undefined$1)
+        params = {};
+      if (params.roll)
+        roll = params.roll;
+      if (pose !== undefined$1) {
+        var horizonPitch = pose[0], horizonRoll = pose[1];
+        var orig_pitch = pitch, orig_yaw = yaw, x = Math.cos(horizonRoll) * Math.sin(pitch) * Math.sin(horizonPitch) + Math.cos(pitch) * (Math.cos(horizonPitch) * Math.cos(yaw) + Math.sin(horizonRoll) * Math.sin(horizonPitch) * Math.sin(yaw)), y = -Math.sin(pitch) * Math.sin(horizonRoll) + Math.cos(pitch) * Math.cos(horizonRoll) * Math.sin(yaw), z = Math.cos(horizonRoll) * Math.cos(horizonPitch) * Math.sin(pitch) + Math.cos(pitch) * (-Math.cos(yaw) * Math.sin(horizonPitch) + Math.cos(horizonPitch) * Math.sin(horizonRoll) * Math.sin(yaw));
+        pitch = Math.asin(Math.max(Math.min(z, 1), -1));
+        yaw = Math.atan2(y, x);
+        var v3 = [
+          Math.cos(orig_pitch) * (Math.sin(horizonRoll) * Math.sin(horizonPitch) * Math.cos(orig_yaw) - Math.cos(horizonPitch) * Math.sin(orig_yaw)),
+          Math.cos(orig_pitch) * Math.cos(horizonRoll) * Math.cos(orig_yaw),
+          Math.cos(orig_pitch) * (Math.cos(horizonPitch) * Math.sin(horizonRoll) * Math.cos(orig_yaw) + Math.sin(orig_yaw) * Math.sin(horizonPitch))
+        ], w = [-Math.cos(pitch) * Math.sin(yaw), Math.cos(pitch) * Math.cos(yaw)];
+        var roll_adj = Math.acos(Math.max(Math.min((v3[0] * w[0] + v3[1] * w[1]) / (Math.sqrt(v3[0] * v3[0] + v3[1] * v3[1] + v3[2] * v3[2]) * Math.sqrt(w[0] * w[0] + w[1] * w[1])), 1), -1));
+        if (v3[2] < 0)
+          roll_adj = 2 * Math.PI - roll_adj;
+        roll += roll_adj;
+      }
+      if (!gl && (imageType == "multires" || imageType == "cubemap")) {
+        s = fallbackImgSize / 2;
+        var transforms = {
+          f: "translate3d(-" + (s + 2) + "px, -" + (s + 2) + "px, -" + s + "px)",
+          b: "translate3d(" + (s + 2) + "px, -" + (s + 2) + "px, " + s + "px) rotateX(180deg) rotateZ(180deg)",
+          u: "translate3d(-" + (s + 2) + "px, -" + s + "px, " + (s + 2) + "px) rotateX(270deg)",
+          d: "translate3d(-" + (s + 2) + "px, " + s + "px, -" + (s + 2) + "px) rotateX(90deg)",
+          l: "translate3d(-" + s + "px, -" + (s + 2) + "px, " + (s + 2) + "px) rotateX(180deg) rotateY(90deg) rotateZ(180deg)",
+          r: "translate3d(" + s + "px, -" + (s + 2) + "px, -" + (s + 2) + "px) rotateY(270deg)"
+        };
+        focal = 1 / Math.tan(hfov / 2);
+        var zoom = focal * canvas.clientWidth / 2 + "px";
+        var transform = "perspective(" + zoom + ") translateZ(" + zoom + ") rotateX(" + pitch + "rad) rotateY(" + yaw + "rad) ";
+        var faces = Object.keys(transforms);
+        for (i2 = 0; i2 < 6; i2++) {
+          var face2 = world.querySelector(".pnlm-" + faces[i2] + "face");
+          if (!face2)
+            continue;
+          face2.style.webkitTransform = transform + transforms[faces[i2]];
+          face2.style.transform = transform + transforms[faces[i2]];
+        }
+        return;
+      }
+      if (imageType != "multires") {
+        var vfov = 2 * Math.atan(Math.tan(hfov * 0.5) / (gl.drawingBufferWidth / gl.drawingBufferHeight));
+        focal = 1 / Math.tan(vfov * 0.5);
+        gl.uniform1f(program.psi, yaw);
+        gl.uniform1f(program.theta, pitch);
+        gl.uniform1f(program.rot, roll);
+        gl.uniform1f(program.f, focal);
+        if (dynamic === true) {
+          if (imageType == "equirectangular") {
+            gl.bindTexture(gl.TEXTURE_2D, program.texture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+          }
+        }
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+      } else {
+        var isPreview = typeof image.shtHash !== "undefined" || typeof image.equirectangularThumbnail !== "undefined";
+        var drawPreview = isPreview;
+        if (isPreview && program.currentNodes.length >= 6) {
+          drawPreview = false;
+          for (var i2 = 0; i2 < 6; i2++) {
+            if (!program.currentNodes[i2].textureLoaded) {
+              drawPreview = true;
+              break;
+            }
+          }
+        }
+        if (drawPreview) {
+          gl.useProgram(previewProgram);
+          gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+          gl.vertexAttribPointer(previewProgram.texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+          gl.bindTexture(gl.TEXTURE_2D, previewProgram.texture);
+          var vfov = 2 * Math.atan(Math.tan(hfov * 0.5) / (gl.drawingBufferWidth / gl.drawingBufferHeight));
+          focal = 1 / Math.tan(vfov * 0.5);
+          gl.uniform1f(previewProgram.psi, yaw);
+          gl.uniform1f(previewProgram.theta, pitch);
+          gl.uniform1f(previewProgram.rot, roll);
+          gl.uniform1f(previewProgram.f, focal);
+          gl.drawArrays(gl.TRIANGLES, 0, 6);
+          gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertBuf);
+          gl.vertexAttribPointer(program.vertPosLocation, 3, gl.FLOAT, false, 0, 0);
+          gl.useProgram(program);
+        }
+        var perspMatrix = makePersp(hfov, gl.drawingBufferWidth / gl.drawingBufferHeight, 0.1, 100);
+        checkZoom(hfov);
+        var matrix = identityMatrix3();
+        matrix = rotateMatrix(matrix, -roll, "z");
+        matrix = rotateMatrix(matrix, -pitch, "x");
+        matrix = rotateMatrix(matrix, yaw, "y");
+        matrix = makeMatrix4(matrix);
+        gl.uniformMatrix4fv(program.perspUniform, false, transposeMatrix4(perspMatrix));
+        gl.uniformMatrix4fv(program.cubeUniform, false, transposeMatrix4(matrix));
+        var rotPersp = rotatePersp(perspMatrix, matrix);
+        program.nodeCache.sort(multiresNodeSort);
+        if (program.nodeCache.length > 200 && program.nodeCache.length > program.currentNodes.length + 50) {
+          var removed = program.nodeCache.splice(200, program.nodeCache.length - 200);
+          for (var j = 0; j < removed.length; j++) {
+            gl.deleteTexture(removed[j].texture);
+          }
+        }
+        program.currentNodes = [];
+        for (s = 0; s < 6; s++) {
+          var ntmp = new MultiresNode(vtmps[s], sides[s], 1, 0, 0, image.fullpath, null);
+          testMultiresNode(rotPersp, ntmp, pitch, yaw);
+        }
+        program.currentNodes.sort(multiresNodeRenderSort);
+        for (i2 = pendingTextureRequests.length - 1; i2 >= 0; i2--) {
+          if (program.currentNodes.indexOf(pendingTextureRequests[i2].node) === -1) {
+            pendingTextureRequests[i2].node.textureLoad = false;
+            pendingTextureRequests.splice(i2, 1);
+          }
+        }
+        if (pendingTextureRequests.length === 0) {
+          for (i2 = 0; i2 < program.currentNodes.length; i2++) {
+            var node = program.currentNodes[i2];
+            if (!node.texture && !node.textureLoad) {
+              node.textureLoad = true;
+              setTimeout(processNextTile, 0, node);
+              break;
+            }
+          }
+        }
+        if (program.textureLoads.length > 0)
+          program.textureLoads.shift()(true);
+        multiresDraw(!isPreview);
+      }
+      if (params.returnImage !== undefined$1) {
+        if (window2.createImageBitmap && params.returnImage == "ImageBitmap") {
+          return createImageBitmap(canvas);
+        } else {
+          if (params.returnImage.toString().indexOf("image/") == 0)
+            return canvas.toDataURL(params.returnImage);
+          else
+            return canvas.toDataURL("image/png");
+        }
+      }
+    };
+    this.isLoading = function() {
+      if (gl && imageType == "multires") {
+        for (var i2 = 0; i2 < program.currentNodes.length; i2++) {
+          if (!program.currentNodes[i2].textureLoaded) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+    this.isBaseLoaded = function() {
+      if (program.currentNodes.length >= 6) {
+        for (var i2 = 0; i2 < 6; i2++) {
+          if (!program.currentNodes[i2].textureLoaded) {
+            return false;
+          }
+        }
+        return true;
+      }
+      return false;
+    };
+    this.getCanvas = function() {
+      return canvas;
+    };
+    function multiresNodeSort(a, b) {
+      if (a.level == 1 && b.level != 1) {
+        return -1;
+      }
+      if (b.level == 1 && a.level != 1) {
+        return 1;
+      }
+      return b.timestamp - a.timestamp;
+    }
+    function multiresNodeRenderSort(a, b) {
+      if (a.level != b.level) {
+        return a.level - b.level;
+      }
+      return a.diff - b.diff;
+    }
+    function multiresDraw(clear) {
+      if (!program.drawInProgress) {
+        program.drawInProgress = true;
+        if (clear)
+          gl.clear(gl.COLOR_BUFFER_BIT);
+        var node_paths = {};
+        for (var i2 = 0; i2 < program.currentNodes.length; i2++)
+          node_paths[program.currentNodes[i2].parentPath] |= !(program.currentNodes[i2].textureLoaded > 1);
+        for (var i2 = 0; i2 < program.currentNodes.length; i2++) {
+          if (program.currentNodes[i2].textureLoaded > 1 && node_paths[program.currentNodes[i2].path] != 0) {
+            gl.bufferData(gl.ARRAY_BUFFER, program.currentNodes[i2].vertices, gl.STATIC_DRAW);
+            gl.bindTexture(gl.TEXTURE_2D, program.currentNodes[i2].texture);
+            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+          }
+        }
+        program.drawInProgress = false;
+      }
+    }
+    function MultiresNode(vertices, side, level, x, y, path, parentPath) {
+      this.vertices = vertices;
+      this.side = side;
+      this.level = level;
+      this.x = x;
+      this.y = y;
+      this.path = path.replace("%s", side).replace("%l0", level - 1).replace("%l", level).replace("%x", x).replace("%y", y);
+      this.parentPath = parentPath;
+    }
+    function testMultiresNode(rotPersp, node, pitch, yaw, hfov) {
+      if (checkSquareInView(rotPersp, node.vertices)) {
+        var v3 = node.vertices;
+        var x = v3[0] + v3[3] + v3[6] + v3[9];
+        var y = v3[1] + v3[4] + v3[7] + v3[10];
+        var z = v3[2] + v3[5] + v3[8] + v3[11];
+        var r = Math.sqrt(x * x + y * y + z * z);
+        var theta = Math.asin(z / r);
+        var phi = Math.atan2(y, x);
+        var ydiff = phi - yaw;
+        ydiff += ydiff > Math.PI ? -2 * Math.PI : ydiff < -Math.PI ? 2 * Math.PI : 0;
+        ydiff = Math.abs(ydiff);
+        node.diff = Math.acos(Math.sin(pitch) * Math.sin(theta) + Math.cos(pitch) * Math.cos(theta) * Math.cos(ydiff));
+        var inCurrent = false;
+        for (var k = 0; k < program.nodeCache.length; k++) {
+          if (program.nodeCache[k].path == node.path) {
+            inCurrent = true;
+            program.nodeCache[k].timestamp = program.nodeCacheTimestamp++;
+            program.nodeCache[k].diff = node.diff;
+            program.currentNodes.push(program.nodeCache[k]);
+            break;
+          }
+        }
+        if (!inCurrent) {
+          node.timestamp = program.nodeCacheTimestamp++;
+          program.currentNodes.push(node);
+          program.nodeCache.push(node);
+        }
+        if (node.level < program.level) {
+          var cubeSize = image.cubeResolution * Math.pow(2, node.level - image.maxLevel);
+          var numTiles = Math.ceil(cubeSize * image.invTileResolution) - 1;
+          var doubleTileSize = cubeSize % image.tileResolution * 2;
+          var lastTileSize = cubeSize * 2 % image.tileResolution;
+          if (lastTileSize === 0) {
+            lastTileSize = image.tileResolution;
+          }
+          if (doubleTileSize === 0) {
+            doubleTileSize = image.tileResolution * 2;
+          }
+          var f = 0.5;
+          if (node.x == numTiles || node.y == numTiles) {
+            f = 1 - image.tileResolution / (image.tileResolution + lastTileSize);
+          }
+          var i2 = 1 - f;
+          var children2 = [];
+          var vtmp, ntmp;
+          var f1 = f, f2 = f, f3 = f, i1 = i2, i22 = i2, i3 = i2;
+          if (lastTileSize < image.tileResolution) {
+            if (node.x == numTiles && node.y != numTiles) {
+              f2 = 0.5;
+              i22 = 0.5;
+              if (node.side == "d" || node.side == "u") {
+                f3 = 0.5;
+                i3 = 0.5;
+              }
+            } else if (node.x != numTiles && node.y == numTiles) {
+              f1 = 0.5;
+              i1 = 0.5;
+              if (node.side == "l" || node.side == "r") {
+                f3 = 0.5;
+                i3 = 0.5;
+              }
+            }
+          }
+          if (doubleTileSize <= image.tileResolution) {
+            if (node.x == numTiles) {
+              f1 = 0;
+              i1 = 1;
+              if (node.side == "l" || node.side == "r") {
+                f3 = 0;
+                i3 = 1;
+              }
+            }
+            if (node.y == numTiles) {
+              f2 = 0;
+              i22 = 1;
+              if (node.side == "d" || node.side == "u") {
+                f3 = 0;
+                i3 = 1;
+              }
+            }
+          }
+          vtmp = new Float32Array([
+            v3[0],
+            v3[1],
+            v3[2],
+            v3[0] * f1 + v3[3] * i1,
+            v3[1] * f + v3[4] * i2,
+            v3[2] * f3 + v3[5] * i3,
+            v3[0] * f1 + v3[6] * i1,
+            v3[1] * f2 + v3[7] * i22,
+            v3[2] * f3 + v3[8] * i3,
+            v3[0] * f + v3[9] * i2,
+            v3[1] * f2 + v3[10] * i22,
+            v3[2] * f3 + v3[11] * i3
+          ]);
+          ntmp = new MultiresNode(vtmp, node.side, node.level + 1, node.x * 2, node.y * 2, image.fullpath, node.path);
+          children2.push(ntmp);
+          if (!(node.x == numTiles && doubleTileSize <= image.tileResolution)) {
+            vtmp = new Float32Array([
+              v3[0] * f1 + v3[3] * i1,
+              v3[1] * f + v3[4] * i2,
+              v3[2] * f3 + v3[5] * i3,
+              v3[3],
+              v3[4],
+              v3[5],
+              v3[3] * f + v3[6] * i2,
+              v3[4] * f2 + v3[7] * i22,
+              v3[5] * f3 + v3[8] * i3,
+              v3[0] * f1 + v3[6] * i1,
+              v3[1] * f2 + v3[7] * i22,
+              v3[2] * f3 + v3[8] * i3
+            ]);
+            ntmp = new MultiresNode(vtmp, node.side, node.level + 1, node.x * 2 + 1, node.y * 2, image.fullpath, node.path);
+            children2.push(ntmp);
+          }
+          if (!(node.x == numTiles && doubleTileSize <= image.tileResolution) && !(node.y == numTiles && doubleTileSize <= image.tileResolution)) {
+            vtmp = new Float32Array([
+              v3[0] * f1 + v3[6] * i1,
+              v3[1] * f2 + v3[7] * i22,
+              v3[2] * f3 + v3[8] * i3,
+              v3[3] * f + v3[6] * i2,
+              v3[4] * f2 + v3[7] * i22,
+              v3[5] * f3 + v3[8] * i3,
+              v3[6],
+              v3[7],
+              v3[8],
+              v3[9] * f1 + v3[6] * i1,
+              v3[10] * f + v3[7] * i2,
+              v3[11] * f3 + v3[8] * i3
+            ]);
+            ntmp = new MultiresNode(vtmp, node.side, node.level + 1, node.x * 2 + 1, node.y * 2 + 1, image.fullpath, node.path);
+            children2.push(ntmp);
+          }
+          if (!(node.y == numTiles && doubleTileSize <= image.tileResolution)) {
+            vtmp = new Float32Array([
+              v3[0] * f + v3[9] * i2,
+              v3[1] * f2 + v3[10] * i22,
+              v3[2] * f3 + v3[11] * i3,
+              v3[0] * f1 + v3[6] * i1,
+              v3[1] * f2 + v3[7] * i22,
+              v3[2] * f3 + v3[8] * i3,
+              v3[9] * f1 + v3[6] * i1,
+              v3[10] * f + v3[7] * i2,
+              v3[11] * f3 + v3[8] * i3,
+              v3[9],
+              v3[10],
+              v3[11]
+            ]);
+            ntmp = new MultiresNode(vtmp, node.side, node.level + 1, node.x * 2, node.y * 2 + 1, image.fullpath, node.path);
+            children2.push(ntmp);
+          }
+          for (var j = 0; j < children2.length; j++) {
+            testMultiresNode(rotPersp, children2[j], pitch, yaw);
+          }
+        }
+      }
+    }
+    function createCube() {
+      return new Float32Array([
+        -1,
+        1,
+        -1,
+        1,
+        1,
+        -1,
+        1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        1,
+        1,
+        1,
+        -1,
+        1,
+        1,
+        -1,
+        -1,
+        1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        -1,
+        -1,
+        1,
+        -1,
+        -1,
+        -1,
+        -1,
+        1,
+        -1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        -1,
+        1,
+        -1,
+        1,
+        1,
+        -1,
+        1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        1,
+        1,
+        1,
+        -1,
+        1,
+        1,
+        1,
+        1,
+        -1,
+        1,
+        1,
+        -1,
+        -1
+      ]);
+    }
+    function identityMatrix3() {
+      return new Float32Array([
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ]);
+    }
+    function rotateMatrix(m, angle2, axis) {
+      var s = Math.sin(angle2);
+      var c = Math.cos(angle2);
+      if (axis == "x") {
+        return new Float32Array([
+          m[0],
+          c * m[1] + s * m[2],
+          c * m[2] - s * m[1],
+          m[3],
+          c * m[4] + s * m[5],
+          c * m[5] - s * m[4],
+          m[6],
+          c * m[7] + s * m[8],
+          c * m[8] - s * m[7]
+        ]);
+      }
+      if (axis == "y") {
+        return new Float32Array([
+          c * m[0] - s * m[2],
+          m[1],
+          c * m[2] + s * m[0],
+          c * m[3] - s * m[5],
+          m[4],
+          c * m[5] + s * m[3],
+          c * m[6] - s * m[8],
+          m[7],
+          c * m[8] + s * m[6]
+        ]);
+      }
+      if (axis == "z") {
+        return new Float32Array([
+          c * m[0] + s * m[1],
+          c * m[1] - s * m[0],
+          m[2],
+          c * m[3] + s * m[4],
+          c * m[4] - s * m[3],
+          m[5],
+          c * m[6] + s * m[7],
+          c * m[7] - s * m[6],
+          m[8]
+        ]);
+      }
+    }
+    function makeMatrix4(m) {
+      return new Float32Array([
+        m[0],
+        m[1],
+        m[2],
+        0,
+        m[3],
+        m[4],
+        m[5],
+        0,
+        m[6],
+        m[7],
+        m[8],
+        0,
+        0,
+        0,
+        0,
+        1
+      ]);
+    }
+    function transposeMatrix4(m) {
+      return new Float32Array([
+        m[0],
+        m[4],
+        m[8],
+        m[12],
+        m[1],
+        m[5],
+        m[9],
+        m[13],
+        m[2],
+        m[6],
+        m[10],
+        m[14],
+        m[3],
+        m[7],
+        m[11],
+        m[15]
+      ]);
+    }
+    function makePersp(hfov, aspect, znear, zfar) {
+      var fovy = 2 * Math.atan(Math.tan(hfov / 2) * gl.drawingBufferHeight / gl.drawingBufferWidth);
+      var f = 1 / Math.tan(fovy / 2);
+      return new Float32Array([
+        f / aspect,
+        0,
+        0,
+        0,
+        0,
+        f,
+        0,
+        0,
+        0,
+        0,
+        (zfar + znear) / (znear - zfar),
+        2 * zfar * znear / (znear - zfar),
+        0,
+        0,
+        -1,
+        0
+      ]);
+    }
+    function processLoadedTexture(img, tex) {
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.bindTexture(gl.TEXTURE_2D, null);
+    }
+    var pendingTextureRequests = [];
+    var loadTexture = function() {
+      var cacheTop = 4;
+      var textureImageCache = {};
+      var crossOrigin;
+      function TextureImageLoader() {
+        var self2 = this;
+        this.texture = this.callback = null;
+        this.image = new Image();
+        this.image.crossOrigin = crossOrigin ? crossOrigin : "anonymous";
+        var loadFn = function() {
+          program.textureLoads.push(function(execute) {
+            if (execute) {
+              if (self2.image.width > 0 && self2.image.height > 0) {
+                processLoadedTexture(self2.image, self2.texture);
+                self2.callback(self2.texture, true);
+              } else {
+                self2.callback(self2.texture, false);
+              }
+            }
+            releaseTextureImageLoader(self2);
+          });
+        };
+        this.image.addEventListener("load", loadFn);
+        this.image.addEventListener("error", loadFn);
+      }
+      TextureImageLoader.prototype.loadTexture = function(src2, texture, callback) {
+        this.texture = texture;
+        this.callback = callback;
+        this.image.src = src2;
+      };
+      function PendingTextureRequest(node, src2, texture, callback) {
+        this.node = node;
+        this.src = src2;
+        this.texture = texture;
+        this.callback = callback;
+      }
+      function releaseTextureImageLoader(til) {
+        if (pendingTextureRequests.length) {
+          var req = pendingTextureRequests.shift();
+          til.loadTexture(req.src, req.texture, req.callback);
+        } else
+          textureImageCache[cacheTop++] = til;
+      }
+      for (var i2 = 0; i2 < cacheTop; i2++)
+        textureImageCache[i2] = new TextureImageLoader();
+      return function(node, src2, callback, _crossOrigin) {
+        crossOrigin = _crossOrigin;
+        var texture = gl.createTexture();
+        if (cacheTop)
+          textureImageCache[--cacheTop].loadTexture(src2, texture, callback);
+        else
+          pendingTextureRequests.push(new PendingTextureRequest(node, src2, texture, callback));
+        return texture;
+      };
+    }();
+    function processNextTileFallback(node) {
+      loadTexture(node, node.path + (image.extension ? "." + image.extension : ""), function(texture, loaded) {
+        node.texture = texture;
+        node.textureLoaded = loaded ? 2 : 1;
+      }, globalParams.crossOrigin);
+    }
+    var processNextTile;
+    if (window2.Worker && window2.createImageBitmap) {
+      let workerFunc2 = function() {
+        self.onmessage = function(e) {
+          var path = e.data[0], crossOrigin = e.data[1];
+          fetch(path, {
+            mode: "cors",
+            credentials: crossOrigin == "use-credentials" ? "include" : "same-origin"
+          }).then(function(response) {
+            return response.blob();
+          }).then(function(blob) {
+            return createImageBitmap(blob);
+          }).then(function(bitmap) {
+            postMessage([path, true, bitmap], [bitmap]);
+          }).catch(function() {
+            postMessage([path, false]);
+          });
+        };
+      };
+      var workerFunc = workerFunc2;
+      var workerFuncBlob = new Blob(["(" + workerFunc2.toString() + ")()"], { type: "application/javascript" }), worker = new Worker(URL.createObjectURL(workerFuncBlob)), texturesLoading = {};
+      worker.onmessage = function(e) {
+        var path = e.data[0], success = e.data[1], bitmap = e.data[2];
+        program.textureLoads.push(function(execute) {
+          var texture, loaded = false;
+          if (success && execute) {
+            texture = gl.createTexture();
+            processLoadedTexture(bitmap, texture);
+            loaded = true;
+          }
+          var node = texturesLoading[path];
+          delete texturesLoading[path];
+          if (node !== undefined$1) {
+            node.texture = texture;
+            node.textureLoaded = loaded ? 2 : 1;
+          }
+        });
+      };
+      processNextTile = function(node) {
+        var path = new URL(node.path + (image.extension ? "." + image.extension : ""), window2.location).href;
+        texturesLoading[path] = node;
+        worker.postMessage([path, globalParams.crossOrigin]);
+      };
+    } else {
+      processNextTile = processNextTileFallback;
+    }
+    function checkZoom(hfov) {
+      var newLevel = 1;
+      while (newLevel < image.maxLevel && gl.drawingBufferWidth > image.tileResolution * Math.pow(2, newLevel - 1) * Math.tan(hfov / 2) * 0.707) {
+        newLevel++;
+      }
+      program.level = newLevel;
+    }
+    function rotatePersp(p, r) {
+      return new Float32Array([
+        p[0] * r[0],
+        p[0] * r[1],
+        p[0] * r[2],
+        0,
+        p[5] * r[4],
+        p[5] * r[5],
+        p[5] * r[6],
+        0,
+        p[10] * r[8],
+        p[10] * r[9],
+        p[10] * r[10],
+        p[11],
+        -r[8],
+        -r[9],
+        -r[10],
+        0
+      ]);
+    }
+    function applyRotPerspToVec(m, v3) {
+      return new Float32Array([
+        m[0] * v3[0] + m[1] * v3[1] + m[2] * v3[2],
+        m[4] * v3[0] + m[5] * v3[1] + m[6] * v3[2],
+        m[11] + m[8] * v3[0] + m[9] * v3[1] + m[10] * v3[2],
+        1 / (m[12] * v3[0] + m[13] * v3[1] + m[14] * v3[2])
+      ]);
+    }
+    function checkInView(m, v3) {
+      var vpp = applyRotPerspToVec(m, v3);
+      var winX = vpp[0] * vpp[3];
+      var winY = vpp[1] * vpp[3];
+      var winZ = vpp[2] * vpp[3];
+      var ret = [0, 0, 0];
+      if (winX < -1)
+        ret[0] = -1;
+      if (winX > 1)
+        ret[0] = 1;
+      if (winY < -1)
+        ret[1] = -1;
+      if (winY > 1)
+        ret[1] = 1;
+      if (winZ < -1 || winZ > 1)
+        ret[2] = 1;
+      return ret;
+    }
+    function checkSquareInView(m, v3) {
+      var check1 = checkInView(m, v3.slice(0, 3));
+      var check2 = checkInView(m, v3.slice(3, 6));
+      var check3 = checkInView(m, v3.slice(6, 9));
+      var check4 = checkInView(m, v3.slice(9, 12));
+      var testX = check1[0] + check2[0] + check3[0] + check4[0];
+      if (testX == -4 || testX == 4)
+        return false;
+      var testY = check1[1] + check2[1] + check3[1] + check4[1];
+      if (testY == -4 || testY == 4)
+        return false;
+      var testZ = check1[2] + check2[2] + check3[2] + check4[2];
+      return testZ != 4;
+    }
+    function handleWebGLError1286() {
+      console.log("Reducing canvas size due to error 1286!");
+      canvas.width = Math.round(canvas.width / 2);
+      canvas.height = Math.round(canvas.height / 2);
+    }
+    var shtB83chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$%*+,-.:;=?@[]^_{|}~", shtYlmStr = "Bf[ff4fff|ffff0fffffBo@Ri5xag{Jmdf2+WiefCs@Ll7+Vi]Btag6[NmdgCv=Ho9;Qk;7zWiF_GsahDy:ErE?Mn$5+SkS_AyWiD#-CuJ[Iqp6;Nnx?7*SlE$*BxR@FtPA?Jq+%7:NnF*zAzn?CwIG@Ft-Y9?IrG+vA%w:AzGR?Cx*IF@EuI,nA+$*9%Gu:A#xCR?ByJ-VB-*wA+J**9*ZBv:9%L.QD.*aB.O.v9-MF+$8,O:MG:*OD;a:UB:IO:n9:Q:KJ;#IG=u-KE=Hs:MC?T:IO=wEL?#%FJ@K**FI@Y;HV=pDU?*sCS@S.uCR[m;Hp=VDq?*SCs@s.QCt[r:Iw=OEz?#IF$@#*HF%@u:K$;KI+=uEK-=*sCM:?w:M+:HO.;aCU;:%OCn?:z.Q..Ha;.ODv?-yFG$@,$-V;-Hw=+JH*?*lBP:?%%,n=+J*?%GQ:=#NCt?;y++v=%O:=zGt?:xHI,@-u,*z=zX?:wI+@,tEY??%r-$*;xt@,tP=?$qG%[:xn.#-:u$[%qp];xnN?[*sl.y:-r-?yn$^+sks_=yoi:v=*o?;uk;[zoi,_+skh:s@zl[+pi];tkg][xmhg;o@ti^xkg{$mhf|+oigf;f[ff_fff|ffff~fffff", shtMaxYlm = 3.317, shtYlm = [];
+    function shtDecodeFloat(i2, maxVal) {
+      return Math.pow((Math.abs(i2) - maxVal) / maxVal, 2) * (i2 - maxVal > 0 ? 1 : -1);
+    }
+    function shtDecodeCoeff(val, maxVal) {
+      var quantR = Math.floor(val / (19 * 19)), quantG = Math.floor(val / 19) % 19, quantB = val % 19;
+      var r = shtDecodeFloat(quantR, 9) * maxVal, g = shtDecodeFloat(quantG, 9) * maxVal, b = shtDecodeFloat(quantB, 9) * maxVal;
+      return [r, g, b];
+    }
+    function shtB83decode(b83str, length2) {
+      var cnt = Math.floor(b83str.length / length2), vals = [];
+      for (var i2 = 0; i2 < cnt; i2++) {
+        var val = 0;
+        for (var j = 0; j < length2; j++) {
+          val = val * 83 + shtB83chars.indexOf(b83str[i2 * length2 + j]);
+        }
+        vals.push(val);
+      }
+      return vals;
+    }
+    function shtFlm2pixel(flm, Ylm, lon) {
+      var lmax = Math.floor(Math.sqrt(flm.length)) - 1;
+      var cosm = Array(lmax + 1), sinm = Array(lmax + 1);
+      sinm[0] = 0;
+      cosm[0] = 1;
+      sinm[1] = Math.sin(lon);
+      cosm[1] = Math.cos(lon);
+      for (var m = 2; m <= lmax; m++) {
+        sinm[m] = 2 * sinm[m - 1] * cosm[1] - sinm[m - 2];
+        cosm[m] = 2 * cosm[m - 1] * cosm[1] - cosm[m - 2];
+      }
+      var expand = 0, cosidx = 0;
+      for (var i2 = 1; i2 <= lmax + 1; i2++)
+        cosidx += i2;
+      for (var l = lmax; l >= 0; l--) {
+        var idx = Math.floor((l + 1) * l / 2);
+        expand += idx != 0 ? flm[idx] * Ylm[idx - 1] : flm[idx];
+        for (var m = 1; m <= l; m++)
+          expand += (flm[++idx] * cosm[m] + flm[idx + cosidx - l - 1] * sinm[m]) * Ylm[idx - 1];
+      }
+      return Math.round(expand);
+    }
+    function shtDecodeImage(shtHash) {
+      if (shtYlm.length < 1) {
+        var ylmLen = shtYlmStr.length / 32;
+        for (var i2 = 0; i2 < 32; i2++) {
+          shtYlm.push([]);
+          for (var j = 0; j < ylmLen; j++)
+            shtYlm[i2].push(shtDecodeFloat(shtB83decode(shtYlmStr[i2 * ylmLen + j], 1), 41) * shtMaxYlm);
+        }
+      }
+      shtB83decode(shtHash[0], 1)[0];
+      var maxVal = (shtDecodeFloat(shtB83decode(shtHash[1], 1), 41) + 1) * 255 / 2, vals = shtB83decode(shtHash.slice(2), 2), rVals = [], gVals = [], bVals = [];
+      for (var i2 = 0; i2 < vals.length; i2++) {
+        var v3 = shtDecodeCoeff(vals[i2], maxVal);
+        rVals.push(v3[0]);
+        gVals.push(v3[1]);
+        bVals.push(v3[2]);
+      }
+      var lonStep = 0.03125 * Math.PI;
+      var img = [];
+      for (var i2 = 31; i2 >= 0; i2--) {
+        for (var j = 0; j < 64; j++) {
+          img.push(shtFlm2pixel(rVals, shtYlm[i2], (j + 0.5) * lonStep));
+          img.push(shtFlm2pixel(gVals, shtYlm[i2], (j + 0.5) * lonStep));
+          img.push(shtFlm2pixel(bVals, shtYlm[i2], (j + 0.5) * lonStep));
+          img.push(255);
+        }
+      }
+      return new ImageData(new Uint8ClampedArray(img), 64, 32);
+    }
+  }
+  var v2 = [
+    "attribute vec2 a_texCoord;",
+    "varying vec2 v_texCoord;",
+    "void main() {",
+    "gl_Position = vec4(a_texCoord, 0.0, 1.0);",
+    "v_texCoord = a_texCoord;",
+    "}"
+  ].join("");
+  var vMulti = [
+    "attribute vec3 a_vertCoord;",
+    "attribute vec2 a_texCoord;",
+    "uniform mat4 u_cubeMatrix;",
+    "uniform mat4 u_perspMatrix;",
+    "varying mediump vec2 v_texCoord;",
+    "void main(void) {",
+    "gl_Position = u_perspMatrix * u_cubeMatrix * vec4(a_vertCoord, 1.0);",
+    "v_texCoord = a_texCoord;",
+    "}"
+  ].join("");
+  var fragEquiCubeBase = [
+    "precision highp float;",
+    "uniform float u_aspectRatio;",
+    "uniform float u_psi;",
+    "uniform float u_theta;",
+    "uniform float u_f;",
+    "uniform float u_h;",
+    "uniform float u_v;",
+    "uniform float u_vo;",
+    "uniform float u_rot;",
+    "const float PI = 3.14159265358979323846264;",
+    "uniform sampler2D u_image0;",
+    "uniform sampler2D u_image1;",
+    "uniform bool u_splitImage;",
+    "uniform samplerCube u_imageCube;",
+    "varying vec2 v_texCoord;",
+    "uniform vec4 u_backgroundColor;",
+    "void main() {",
+    "float x = v_texCoord.x * u_aspectRatio;",
+    "float y = v_texCoord.y;",
+    "float sinrot = sin(u_rot);",
+    "float cosrot = cos(u_rot);",
+    "float rot_x = x * cosrot - y * sinrot;",
+    "float rot_y = x * sinrot + y * cosrot;",
+    "float sintheta = sin(u_theta);",
+    "float costheta = cos(u_theta);",
+    "float a = u_f * costheta - rot_y * sintheta;",
+    "float root = sqrt(rot_x * rot_x + a * a);",
+    "float lambda = atan(rot_x / root, a / root) + u_psi;",
+    "float phi = atan((rot_y * costheta + u_f * sintheta) / root);"
+  ].join("\n");
+  var fragCube = fragEquiCubeBase + [
+    "float cosphi = cos(phi);",
+    "gl_FragColor = textureCube(u_imageCube, vec3(cosphi*sin(lambda), sin(phi), cosphi*cos(lambda)));",
+    "}"
+  ].join("\n");
+  var fragEquirectangular = fragEquiCubeBase + [
+    "lambda = mod(lambda + PI, PI * 2.0) - PI;",
+    "vec2 coord = vec2(lambda / PI, phi / (PI / 2.0));",
+    "if(coord.x < -u_h || coord.x > u_h || coord.y < -u_v + u_vo || coord.y > u_v + u_vo)",
+    "gl_FragColor = u_backgroundColor;",
+    "else {",
+    "if(u_splitImage) {",
+    "if(coord.x < 0.0)",
+    "gl_FragColor = texture2D(u_image0, vec2((coord.x + u_h) / u_h, (-coord.y + u_v + u_vo) / (u_v * 2.0)));",
+    "else",
+    "gl_FragColor = texture2D(u_image1, vec2((coord.x + u_h) / u_h - 1.0, (-coord.y + u_v + u_vo) / (u_v * 2.0)));",
+    "} else {",
+    "gl_FragColor = texture2D(u_image0, vec2((coord.x + u_h) / (u_h * 2.0), (-coord.y + u_v + u_vo) / (u_v * 2.0)));",
+    "}",
+    "}",
+    "}"
+  ].join("\n");
+  var fragMulti = [
+    "varying mediump vec2 v_texCoord;",
+    "uniform sampler2D u_sampler;",
+    "void main(void) {",
+    "gl_FragColor = texture2D(u_sampler, v_texCoord);",
+    "}"
+  ].join("");
+  return {
+    renderer: function(container, image, imagetype, dynamic) {
+      return new Renderer(container, image, imagetype, dynamic);
+    }
+  };
+}(window, document);
+var pannellum$1 = "";
+function create_fragment$1(ctx) {
+  let div2;
+  let t0;
+  let p;
+  return {
+    c() {
+      div2 = element("div");
+      t0 = space();
+      p = element("p");
+      p.textContent = "Hello";
+      this.c = noop$5;
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      ctx[2](div2);
+      insert(target, t0, anchor);
+      insert(target, p, anchor);
+    },
+    p: noop$5,
+    i: noop$5,
+    o: noop$5,
+    d(detaching) {
+      if (detaching)
+        detach(div2);
+      ctx[2](null);
+      if (detaching)
+        detach(t0);
+      if (detaching)
+        detach(p);
+    }
+  };
+}
+function instance$1($$self, $$props, $$invalidate) {
+  let { gql = {} } = $$props;
+  let pano;
+  onMount(() => {
+    console.log("mounted");
+    pannellum.viewer(pano, {
+      type: "equirectangular",
+      panorama: gql.panorama.mediaItemUrl,
+      preview: gql.panorama.sourceUrl
+    });
+  });
+  function div_binding($$value) {
+    binding_callbacks[$$value ? "unshift" : "push"](() => {
+      pano = $$value;
+      $$invalidate(0, pano);
+    });
+  }
+  $$self.$$set = ($$props2) => {
+    if ("gql" in $$props2)
+      $$invalidate(1, gql = $$props2.gql);
+  };
+  return [pano, gql, div_binding];
+}
+class Pannellum extends SvelteElement {
+  constructor(options) {
+    super();
     init(this, {
       target: this.shadowRoot,
       props: attribute_to_object(this.attributes),
@@ -12514,29 +16152,71 @@ class Panorama extends SvelteElement {
     flush();
   }
 }
-customElements.define("vepple-panorama", Panorama);
+customElements.define("vepple-pannellum", Pannellum);
 function create_catch_block_1(ctx) {
-  return { c: noop$5, m: noop$5, p: noop$5, d: noop$5 };
-}
-function create_then_block_1(ctx) {
-  let vepple_panorama;
+  let p;
+  let t_value = ctx[6].message + "";
+  let t;
   return {
     c() {
-      vepple_panorama = element("vepple-panorama");
-      set_custom_element_data(vepple_panorama, "gql", ctx[0]);
+      p = element("p");
+      t = text(t_value);
+      set_style(p, "color", "red");
     },
     m(target, anchor) {
-      insert(target, vepple_panorama, anchor);
+      insert(target, p, anchor);
+      append(p, t);
     },
     p: noop$5,
     d(detaching) {
       if (detaching)
-        detach(vepple_panorama);
+        detach(p);
+    }
+  };
+}
+function create_then_block_1(ctx) {
+  let div2;
+  let iframe;
+  let iframe_src_value;
+  return {
+    c() {
+      div2 = element("div");
+      iframe = element("iframe");
+      iframe.allowFullscreen = true;
+      set_style(iframe, "border-style", "none");
+      attr(iframe, "part", "iframe");
+      if (!src_url_equal(iframe.src, iframe_src_value = `pannellum.htm#panorama=${ctx[0].panorama.mediaItemUrl}&preview=${ctx[0].panorama.sourceUrl}`))
+        attr(iframe, "src", iframe_src_value);
+      attr(div2, "class", "wrap");
+      attr(div2, "part", "wrap");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, iframe);
+    },
+    p: noop$5,
+    d(detaching) {
+      if (detaching)
+        detach(div2);
     }
   };
 }
 function create_pending_block_1(ctx) {
-  return { c: noop$5, m: noop$5, p: noop$5, d: noop$5 };
+  let p;
+  return {
+    c() {
+      p = element("p");
+      p.textContent = "...waiting";
+    },
+    m(target, anchor) {
+      insert(target, p, anchor);
+    },
+    p: noop$5,
+    d(detaching) {
+      if (detaching)
+        detach(p);
+    }
+  };
 }
 function create_catch_block(ctx) {
   let p;
@@ -12595,11 +16275,12 @@ function create_fragment(ctx) {
     ctx,
     current: null,
     token: null,
-    hasCatch: false,
+    hasCatch: true,
     pending: create_pending_block_1,
     then: create_then_block_1,
     catch: create_catch_block_1,
-    value: 0
+    value: 0,
+    error: 6
   };
   handle_promise(ctx[0], info);
   let info_1 = {
@@ -12694,6 +16375,7 @@ function instance($$self, $$props, $$invalidate) {
       })
     });
     const data2 = await res.json();
+    console.log(data2);
     if (res.ok) {
       return data2.data.posts.nodes[0].postContent;
     } else {
@@ -12701,7 +16383,7 @@ function instance($$self, $$props, $$invalidate) {
     }
   }
   const gql = getGql();
-  let data = getData();
+  const data = getData();
   $$self.$$set = ($$props2) => {
     if ("post" in $$props2)
       $$invalidate(2, post = $$props2.post);
@@ -12713,7 +16395,7 @@ function instance($$self, $$props, $$invalidate) {
 class VeppleEmbed extends SvelteElement {
   constructor(options) {
     super();
-    this.shadowRoot.innerHTML = `<style>*,*:before,*:after{box-sizing:inherit}</style>`;
+    this.shadowRoot.innerHTML = `<style>*,*:before,*:after{box-sizing:border-box}.wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden}iframe{position:absolute;top:0;left:0;width:100%;height:100%}</style>`;
     init(this, {
       target: this.shadowRoot,
       props: attribute_to_object(this.attributes),
