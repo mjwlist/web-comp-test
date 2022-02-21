@@ -85,7 +85,7 @@
       allowfullscreen
       style="border-style:none;"
       part="iframe"
-      src={`pannellum.htm#panorama=${gql.panorama.mediaItemUrl}&preview=${gql.panorama.sourceUrl}`}
+      src={` https://mjwlist.github.io/web-comp-test/dist/ pannellum.htm#panorama=${gql.panorama.mediaItemUrl}&preview=${gql.panorama.sourceUrl}`}
     />
   </div>
 {:catch error}

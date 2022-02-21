@@ -16185,7 +16185,7 @@ function create_then_block_1(ctx) {
       iframe.allowFullscreen = true;
       set_style(iframe, "border-style", "none");
       attr(iframe, "part", "iframe");
-      if (!src_url_equal(iframe.src, iframe_src_value = `pannellum.htm#panorama=${ctx[0].panorama.mediaItemUrl}&preview=${ctx[0].panorama.sourceUrl}`))
+      if (!src_url_equal(iframe.src, iframe_src_value = ` https://mjwlist.github.io/web-comp-test/dist/ pannellum.htm#panorama=${ctx[0].panorama.mediaItemUrl}&preview=${ctx[0].panorama.sourceUrl}`))
         attr(iframe, "src", iframe_src_value);
       attr(div2, "class", "wrap");
       attr(div2, "part", "wrap");
