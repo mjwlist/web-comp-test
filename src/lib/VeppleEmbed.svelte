@@ -1,8 +1,8 @@
 <svelte:options tag="vepple-embed" />
 
 <script>
-  import Panorama from './Panorama.svelte'
-  import Pannellum from './Pannellum.svelte'
+  /* import Panorama from './Panorama.svelte' */
+  /* import Pannellum from './Pannellum.svelte' */
   export let post
   export let api
 
@@ -85,7 +85,7 @@
       allowfullscreen
       style="border-style:none;"
       part="iframe"
-      src={` https://mjwlist.github.io/web-comp-test/dist/ pannellum.htm#panorama=${gql.panorama.mediaItemUrl}&preview=${gql.panorama.sourceUrl}`}
+      src={`https://mjwlist.github.io/web-comp-test/dist/pannellum.htm#panorama=${gql.panorama.mediaItemUrl}&preview=${gql.panorama.sourceUrl}`}
     />
   </div>
 {:catch error}
